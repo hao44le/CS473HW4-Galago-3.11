@@ -4,7 +4,7 @@ package org.lemurproject.galago.core.retrieval.iterator;
 import java.io.IOException;
 import org.lemurproject.galago.core.index.ValueIterator;
 import org.lemurproject.galago.core.retrieval.query.NodeParameters;
-import org.lemurproject.galago.core.retrieval.structured.ScoringContext;
+import org.lemurproject.galago.core.retrieval.processing.ScoringContext;
 import org.lemurproject.galago.tupleflow.Parameters;
 
 /**
@@ -93,9 +93,7 @@ public class ScoreCombinationIterator implements ScoreValueIterator {
   }
 
   public void setContext(ScoringContext context) {
-    for (ScoreIterator iterator : iterators) {
-      iterator.setContext(context);
-    }
+    // This is done when the children are constructed
   }
 
   public ScoringContext getContext() {

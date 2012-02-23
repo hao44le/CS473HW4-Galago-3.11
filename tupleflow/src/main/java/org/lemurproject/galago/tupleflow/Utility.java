@@ -23,10 +23,10 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.logging.Logger;
 import org.lemurproject.galago.tupleflow.execution.Step;
-import org.apache.commons.io.FileUtils;
 
 /**
  * Lots of static methods here that have broad use.
@@ -454,7 +454,7 @@ public class Utility {
     }
 
     makeParentDirectories(temporaryDir.getAbsolutePath());
-    if(temporaryDir.isFile()){
+    if (temporaryDir.isFile()) {
       temporaryDir.delete();
     }
     temporaryDir.mkdir();
