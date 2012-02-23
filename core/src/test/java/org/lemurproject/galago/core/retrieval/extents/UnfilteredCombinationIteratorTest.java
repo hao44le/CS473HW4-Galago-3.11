@@ -5,7 +5,7 @@ import org.lemurproject.galago.core.retrieval.iterator.ScoreCombinationIterator;
 import java.io.IOException;
 import junit.framework.TestCase;
 import org.lemurproject.galago.core.retrieval.query.NodeParameters;
-import org.lemurproject.galago.core.retrieval.structured.ScoringContext;
+import org.lemurproject.galago.core.retrieval.processing.ScoringContext;
 import org.lemurproject.galago.tupleflow.Parameters;
 
 /**
@@ -62,6 +62,8 @@ public class UnfilteredCombinationIteratorTest extends TestCase {
             iterators);
 
     ScoringContext context = new ScoringContext();
+    one.setContext(context);
+    two.setContext(context);
     instance.setContext(context);
     for (int i = 0; i < 12; i++) {
       assertFalse(instance.isDone());

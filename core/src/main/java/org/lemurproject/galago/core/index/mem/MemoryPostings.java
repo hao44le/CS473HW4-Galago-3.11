@@ -25,10 +25,10 @@ import org.lemurproject.galago.core.retrieval.query.NodeType;
 import org.lemurproject.galago.core.retrieval.iterator.ContextualIterator;
 import org.lemurproject.galago.core.retrieval.iterator.CountValueIterator;
 import org.lemurproject.galago.core.retrieval.iterator.ExtentArrayIterator;
-import org.lemurproject.galago.core.retrieval.structured.ScoringContext;
+import org.lemurproject.galago.core.retrieval.processing.ScoringContext;
 import org.lemurproject.galago.core.retrieval.iterator.ExtentValueIterator;
 import org.lemurproject.galago.core.retrieval.iterator.ModifiableIterator;
-import org.lemurproject.galago.core.retrieval.structured.TopDocsContext;
+import org.lemurproject.galago.core.retrieval.processing.TopDocsContext;
 import org.lemurproject.galago.core.util.ExtentArray;
 import org.lemurproject.galago.tupleflow.DataStream;
 import org.lemurproject.galago.tupleflow.FakeParameters;
@@ -441,6 +441,11 @@ public class MemoryPostings implements MemoryIndexPart, AggregateReader {
     }
 
     @Override
+    public int maximumCount() {
+      return Integer.MAX_VALUE;
+    }
+
+    @Override
     public ExtentArray extents() {
       return extents;
     }
@@ -635,6 +640,11 @@ public class MemoryPostings implements MemoryIndexPart, AggregateReader {
     @Override
     public int count() {
       return currCount;
+    }
+
+    @Override
+    public int maximumCount() {
+      return Integer.MAX_VALUE;
     }
 
     @Override
