@@ -3,21 +3,20 @@
  */
 package org.lemurproject.galago.core.retrieval;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import org.lemurproject.galago.core.index.AggregateReader.CollectionStatistics;
+import java.util.logging.Logger;
 import org.lemurproject.galago.core.index.AggregateReader.NodeStatistics;
+import org.lemurproject.galago.core.index.Index;
 import org.lemurproject.galago.core.index.mem.*;
-import org.lemurproject.galago.core.parse.Document;
+import org.lemurproject.galago.core.retrieval.iterator.*;
+import org.lemurproject.galago.core.retrieval.processing.ProcessingModel;
+import org.lemurproject.galago.core.retrieval.processing.ScoringContext;
 import org.lemurproject.galago.core.retrieval.query.Node;
-import org.lemurproject.galago.core.retrieval.query.NodeType;
-import org.lemurproject.galago.core.retrieval.query.QueryType;
-import org.lemurproject.galago.core.retrieval.query.StructuredQuery;
-import org.lemurproject.galago.core.retrieval.structured.FeatureFactory;
-import org.lemurproject.galago.core.retrieval.traversal.Traversal;
 import org.lemurproject.galago.tupleflow.Parameters;
+import org.lemurproject.galago.tupleflow.Utility;
 
 /**
  * The CacbedRetrieval object wraps a local retrieval object
@@ -26,12 +25,11 @@ import org.lemurproject.galago.tupleflow.Parameters;
  *
  * @author sjh
  */
-public class CachedRetrieval implements Retrieval {
+public class CachedRetrieval extends LocalRetrieval {
 
   protected HashMap<String, MemoryIndexPart> cacheParts;
-  protected LocalRetrieval retrieval;
-  protected FeatureFactory features;
-  protected Parameters globalParameters;
+  protected HashMap<String, String> cachedNodes;
+  protected HashMap<String, NodeStatistics> cachedStats;
 
   /**
    * One retrieval interacts with one index. Parameters dictate the behavior
@@ -39,14 +37,16 @@ public class CachedRetrieval implements Retrieval {
    * Additionally, the supplied parameters will be passed forward to the chosen
    * feature factory.
    */
-  public CachedRetrieval(LocalRetrieval retrieval) throws Exception {
-    this(retrieval, new Parameters());
+  public CachedRetrieval(Index index) throws Exception {
+    this(index, new Parameters());
   }
 
-  public CachedRetrieval(LocalRetrieval retrieval, Parameters parameters) throws IOException, Exception {
-    this.globalParameters = parameters;
-    this.retrieval = retrieval;
-    this.features = new FeatureFactory(globalParameters);
+  public CachedRetrieval(String filename, Parameters parameters)
+          throws FileNotFoundException, IOException, Exception {
+    super(filename, parameters);
+
+    this.cachedNodes = new HashMap();
+    this.cachedStats = new HashMap();
 
     this.cacheParts = new HashMap();
     this.cacheParts.put("score", new MemorySparseFloatIndex(new Parameters()));
@@ -56,106 +56,110 @@ public class CachedRetrieval implements Retrieval {
     // this.cacheParts.put("lengths", new MemoryDocumentLengths(new Parameters()));
   }
 
+  public CachedRetrieval(Index index, Parameters parameters) throws Exception {
+    super(index, parameters);
+
+    this.cachedNodes = new HashMap();
+    this.cachedStats = new HashMap();
+
+    this.cacheParts = new HashMap();
+    this.cacheParts.put("score", new MemorySparseFloatIndex(new Parameters()));
+    this.cacheParts.put("extent", new MemoryWindowIndex(index.getIndexPart("postings").getManifest()));
+    this.cacheParts.put("count", new MemoryCountIndex(index.getIndexPart("postings").getManifest()));
+    // this.cacheParts.put("names", new MemoryDocumentNames(new Parameters()));
+    // this.cacheParts.put("lengths", new MemoryDocumentLengths(new Parameters()));
+  }
+
   @Override
-  public void close() throws IOException {
-    this.retrieval.close();
-    for (MemoryIndexPart mp : cacheParts.values()) {
-      mp.close();
+  protected StructuredIterator createNodeMergedIterator(Node node, ScoringContext context,
+          HashMap<String, StructuredIterator> queryIteratorCache)
+          throws Exception {
+
+    ArrayList<StructuredIterator> internalIterators = new ArrayList<StructuredIterator>();
+    StructuredIterator iterator;
+
+    // first check if the query cache already contains this iterator
+    if (queryIteratorCache != null && queryIteratorCache.containsKey(node.toString())) {
+      return queryIteratorCache.get(node.toString());
     }
-  }
 
-  @Override
-  public Parameters getGlobalParameters() {
-    return globalParameters;
-  }
+    String nodeString = node.toString();
+    if (cachedNodes.containsKey(nodeString)) {
+      // new behaviour - check cache for this node.
+      iterator = cacheParts.get(cachedNodes.get(nodeString)).getIterator(Utility.fromString(nodeString));
+    } else {
+      // otherwise create iterator
+      for (Node internalNode : node.getInternalNodes()) {
+        StructuredIterator internalIterator = createNodeMergedIterator(internalNode, context, queryIteratorCache);
+        internalIterators.add(internalIterator);
+      }
 
-  @Override
-  public Node transformQuery(Node root, Parameters queryParams) throws Exception {
-    List<Traversal> traversals = features.getTraversals(this, root, queryParams);
-    Node queryTree = root;
-    for (Traversal traversal : traversals) {
-      queryTree = StructuredQuery.walk(traversal, queryTree);
+      iterator = index.getIterator(node);
+      if (iterator == null) {
+        iterator = features.getIterator(node, internalIterators);
+      }
     }
-    return queryTree;
+
+    // add a context if necessary
+    if (ContextualIterator.class.isInstance(iterator) && (context != null)) {
+      ((ContextualIterator) iterator).setContext(context);
+    }
+
+    // we've created a new iterator - add to the cache for future nodes
+    if (queryIteratorCache != null) {
+      queryIteratorCache.put(node.toString(), iterator);
+    }
+
+    return iterator;
   }
 
-  @Override
-  public ScoredDocument[] runQuery(Node root) throws Exception {
-    // this should do something
-    return retrieval.runQuery(root);
-  }
+  /**
+   * caches an arbitrary query node currently can store only count, extent, and
+   * score iterators.
+   */
+  public void addToCache(Node node) throws Exception {
+    ScoringContext sc = new ScoringContext();
+    StructuredIterator iterator = super.createIterator(new Parameters(), node, sc);
+    ProcessingModel.initializeLengths(this, sc);
 
-  @Override
-  public ScoredDocument[] runQuery(Node root, Parameters parameters) throws Exception {
-    // this should do something
-    return retrieval.runQuery(root, parameters);
-  }
 
-  @Override
-  public NodeStatistics nodeStatistics(String nodeString) throws Exception {
-    // this should do something
-    return retrieval.nodeStatistics(nodeString);
+    String nodeString = node.toString();
+    if (!cachedNodes.containsKey(nodeString)) {
+      if (iterator instanceof MovableScoreIterator) {
+        cachedNodes.put(nodeString, "score");
+        cacheParts.get("score").addIteratorData(Utility.fromString(nodeString), (MovableIterator) iterator);
+        Logger.getLogger(this.getClass().getName()).info("Cached scoring node : " + nodeString);
+
+      } else if (iterator instanceof MovableExtentIterator) {
+        NodeStatistics ns = super.nodeStatistics(node);
+        cachedStats.put(nodeString, ns);
+        cachedNodes.put(nodeString, "extent");
+        cacheParts.get("extent").addIteratorData(Utility.fromString(nodeString), (MovableIterator) iterator);
+        Logger.getLogger(this.getClass().getName()).info("Cached extent node : " + nodeString);
+
+      } else if (iterator instanceof MovableCountIterator) {
+        NodeStatistics ns = super.nodeStatistics(node);
+        cachedStats.put(nodeString, ns);
+        cachedNodes.put(nodeString, "count");
+        cacheParts.get("count").addIteratorData(Utility.fromString(nodeString), (MovableIterator) iterator);
+        Logger.getLogger(this.getClass().getName()).info("Cached count node : " + nodeString);
+
+      } else {
+        Logger.getLogger(this.getClass().getName()).info("Unable to cache node : " + nodeString);
+      }
+    } else {
+      Logger.getLogger(this.getClass().getName()).info("Already cached node : " + nodeString);
+
+    }
   }
 
   @Override
   public NodeStatistics nodeStatistics(Node node) throws Exception {
-    // this should do something
-    return retrieval.nodeStatistics(node);
-  }
-
-  @Override
-  public int getDocumentLength(int docid) throws IOException {
-    // this should do something
-    return retrieval.getDocumentLength(docid);
-  }
-
-  @Override
-  public int getDocumentLength(String docname) throws IOException {
-    // this should do something
-    return retrieval.getDocumentLength(docname);
-  }
-
-  @Override
-  public String getDocumentName(int docid) throws IOException {
-    // this should do something
-    return retrieval.getDocumentName(docid);
-  }
-
-  /**
-   * These functions pass through to the sub-index *
-   */
-  @Override
-  public Parameters getAvailableParts() throws IOException {
-    return retrieval.getAvailableParts();
-  }
-
-  @Override
-  public Document getDocument(String identifier, Parameters p) throws IOException {
-    return retrieval.getDocument(identifier, p);
-  }
-
-  @Override
-  public Map<String, Document> getDocuments(List<String> identifiers, Parameters p) throws IOException {
-    return retrieval.getDocuments(identifiers, p);
-  }
-
-  @Override
-  public NodeType getNodeType(Node node) throws Exception {
-    return retrieval.getNodeType(node);
-  }
-
-  @Override
-  public QueryType getQueryType(Node node) throws Exception {
-    return retrieval.getQueryType(node);
-  }
-
-  @Override
-  public CollectionStatistics getRetrievalStatistics() throws IOException {
-    return retrieval.getRetrievalStatistics();
-  }
-
-  @Override
-  public CollectionStatistics getRetrievalStatistics(String partName) throws IOException {
-    return retrieval.getRetrievalStatistics(partName);
+    // check the node cache first - this will avoid zeros.
+    String nodeString = node.toString();
+    if (cachedNodes.containsKey(nodeString)) {
+      return this.cachedStats.get(nodeString);
+    }
+    return super.nodeStatistics(node);
   }
 }

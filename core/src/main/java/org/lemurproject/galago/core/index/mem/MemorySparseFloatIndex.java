@@ -68,13 +68,12 @@ public class MemorySparseFloatIndex implements MemoryIndexPart {
       ScoringContext c = (mi instanceof ContextualIterator) ? ((ContextualIterator) mi).getContext() : null;
       while (!mi.isDone()) {
         int document = mi.currentCandidate();
-        if (c != null) {
-          c.document = document;
-          c.moveLengths(document);
+        c.document = document;
+        c.moveLengths(document);
+        if (mi.atCandidate(document)) {
+          double score = mi.score();
+          postingList.add(document, score);
         }
-
-        double score = mi.score();
-        postingList.add(document, score);
         mi.next();
       }
 
@@ -100,6 +99,11 @@ public class MemorySparseFloatIndex implements MemoryIndexPart {
       return getNodeScores(key);
     }
     return null;
+  }
+
+  @Override
+  public ValueIterator getIterator(byte[] key) throws IOException {
+    return getNodeScores(key);
   }
 
   protected ScoresIterator getNodeScores(byte[] key) throws IOException {
