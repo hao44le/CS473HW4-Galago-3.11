@@ -51,10 +51,10 @@ public class RemoveStopwordsTraversalTest extends TestCase {
     assertEquals("d", removed.getInternalNodes().get(3).getDefaultParameter());
     assertEquals("e", removed.getInternalNodes().get(4).getDefaultParameter());
 
-    root = StructuredQuery.parse("#od:5(#extents:a() #extents:c() #extents: b())");
-    removed = StructuredQuery.copy(traversal, root);
-    assertEquals(1, removed.getInternalNodes().size());
-    assertEquals("c", removed.getInternalNodes().get(0).getDefaultParameter());
+    //root = StructuredQuery.parse("#od:5(#extents:a() #extents:c() #extents: b())");
+    //removed = StructuredQuery.copy(traversal, root);
+    //assertEquals(1, removed.getInternalNodes().size());
+    //assertEquals("c", removed.getInternalNodes().get(0).getDefaultParameter());
     
     temp.delete();
   }
@@ -76,10 +76,10 @@ public class RemoveStopwordsTraversalTest extends TestCase {
     assertEquals("d", removed.getInternalNodes().get(3).getDefaultParameter());
     assertEquals("e", removed.getInternalNodes().get(4).getDefaultParameter());
 
-    root = StructuredQuery.parse("#od:5(#extents:a() #extents:c() #extents: b())");
-    removed = StructuredQuery.copy(traversal, root);
-    assertEquals(1, removed.getInternalNodes().size());
-    assertEquals("c", removed.getInternalNodes().get(0).getDefaultParameter());
+    //root = StructuredQuery.parse("#od:5(#extents:a() #extents:c() #extents: b())");
+    //removed = StructuredQuery.copy(traversal, root);
+    //assertEquals(1, removed.getInternalNodes().size());
+    //assertEquals("c", removed.getInternalNodes().get(0).getDefaultParameter());
 
   }
   

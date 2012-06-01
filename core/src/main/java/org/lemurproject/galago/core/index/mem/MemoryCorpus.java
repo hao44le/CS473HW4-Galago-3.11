@@ -56,6 +56,11 @@ public class MemoryCorpus implements DocumentReader, MemoryIndexPart {
   }
 
   @Override
+  public void removeIteratorData(byte[] key) throws IOException {
+    throw new IOException("Can not remove Document Names iterator data");
+  }
+
+  @Override
   public void close() throws IOException {
     // clean up data.
     corpusData = null;

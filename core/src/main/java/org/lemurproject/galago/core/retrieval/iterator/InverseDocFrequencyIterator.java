@@ -18,7 +18,7 @@ public class InverseDocFrequencyIterator extends ScoringFunctionIterator {
 
   public InverseDocFrequencyIterator(NodeParameters p, MovableCountIterator it)
           throws IOException {
-    super(it, new InverseDocumentFrequencyScorer(p, it));
+    super(p, it, new InverseDocumentFrequencyScorer(p, it));
     // And now dump it
     iterator = null;
   }
@@ -73,7 +73,7 @@ public class InverseDocFrequencyIterator extends ScoringFunctionIterator {
   }
 
   @Override
-  public boolean atCandidate(int identifier) {
+  public boolean hasMatch(int identifier) {
     return false;
   }
 

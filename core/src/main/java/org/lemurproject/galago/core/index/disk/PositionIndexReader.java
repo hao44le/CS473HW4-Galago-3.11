@@ -3,22 +3,20 @@ package org.lemurproject.galago.core.index.disk;
 
 import java.io.DataInput;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.lemurproject.galago.core.index.AggregateReader;
 import org.lemurproject.galago.core.index.BTreeReader;
 import org.lemurproject.galago.core.index.KeyListReader;
-import org.lemurproject.galago.core.index.disk.TopDocsReader.TopDocument;
 import org.lemurproject.galago.core.index.ValueIterator;
 import org.lemurproject.galago.core.parse.stem.Stemmer;
+import org.lemurproject.galago.core.retrieval.query.AnnotatedNode;
 import org.lemurproject.galago.core.retrieval.query.Node;
 import org.lemurproject.galago.core.retrieval.query.NodeType;
-import org.lemurproject.galago.core.retrieval.iterator.ContextualIterator;
-import org.lemurproject.galago.core.retrieval.processing.ScoringContext;
 import org.lemurproject.galago.core.retrieval.iterator.MovableExtentIterator;
 import org.lemurproject.galago.core.retrieval.iterator.MovableCountIterator;
-import org.lemurproject.galago.core.retrieval.processing.TopDocsContext;
 import org.lemurproject.galago.core.util.ExtentArray;
 import org.lemurproject.galago.tupleflow.DataStream;
 import org.lemurproject.galago.tupleflow.Utility;
@@ -77,10 +75,9 @@ public class PositionIndexReader extends KeyListReader implements AggregateReade
   }
 
   public class TermExtentIterator extends KeyListReader.ListIterator
-          implements AggregateIterator, MovableCountIterator, MovableExtentIterator, ContextualIterator {
+          implements AggregateIterator, MovableCountIterator, MovableExtentIterator {
 
     BTreeReader.BTreeIterator iterator;
-    ScoringContext context;
     int documentCount;
     int totalPositionCount;
     int maximumPositionCount;
@@ -376,21 +373,17 @@ public class PositionIndexReader extends KeyListReader implements AggregateReade
       return stats;
     }
 
-    // This will pass up topdocs information if it's available
     @Override
-    public void setContext(ScoringContext context) {
-      if ((context != null) && TopDocsContext.class.isAssignableFrom(context.getClass())
-              && this.hasModifier("topdocs")) {
-        ((TopDocsContext) context).hold = ((ArrayList<TopDocument>) getModifier("topdocs"));
-        // remove the pointer to the mod (don't need it anymore)
-        this.modifiers.remove("topdocs");
-      }
-      this.context = context;
-    }
-    
-    @Override
-    public ScoringContext getContext(){
-      return this.context;
+    public AnnotatedNode getAnnotatedNode() throws IOException {
+      String type = "extents";
+      String className = this.getClass().getSimpleName();
+      String parameters = this.getKeyString();
+      int document = currentCandidate();
+      boolean atCandidate = hasMatch(this.context.document);
+      String returnValue = extents().toString();
+      List<AnnotatedNode> children = Collections.EMPTY_LIST;
+
+      return new AnnotatedNode(type, className, parameters, document, atCandidate, returnValue, children);
     }
   }
 
@@ -401,10 +394,9 @@ public class PositionIndexReader extends KeyListReader implements AggregateReade
    *
    */
   public class TermCountIterator extends KeyListReader.ListIterator
-          implements AggregateIterator, MovableCountIterator, ContextualIterator {
+          implements AggregateIterator, MovableCountIterator {
 
     BTreeReader.BTreeIterator iterator;
-    ScoringContext context;
     int documentCount;
     int collectionCount;
     int maximumPositionCount;
@@ -667,22 +659,18 @@ public class PositionIndexReader extends KeyListReader implements AggregateReade
       return stats;
     }
 
-    // This will pass up topdocs information if it's available
     @Override
-    public void setContext(ScoringContext context) {
-      if ((context != null) && TopDocsContext.class.isAssignableFrom(context.getClass())
-              && this.hasModifier("topdocs")) {
-        ((TopDocsContext) context).hold = ((ArrayList<TopDocument>) getModifier("topdocs"));
-        // remove the pointer to the mod (don't need it anymore)
-        this.modifiers.remove("topdocs");
-      }
-      this.context = context;
+    public AnnotatedNode getAnnotatedNode() throws IOException {
+      String type = "counts";
+      String className = this.getClass().getSimpleName();
+      String parameters = this.getKeyString();
+      int document = currentCandidate();
+      boolean atCandidate = hasMatch(this.context.document);
+      String returnValue = Integer.toString(count());
+      List<AnnotatedNode> children = Collections.EMPTY_LIST;
+
+      return new AnnotatedNode(type, className, parameters, document, atCandidate, returnValue, children);
     }
-    
-    @Override
-    public ScoringContext getContext(){
-      return this.context;
-    }    
   }
   Stemmer stemmer = null;
 
