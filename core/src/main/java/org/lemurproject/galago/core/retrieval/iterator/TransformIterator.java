@@ -17,10 +17,12 @@ public abstract class TransformIterator implements MovableIterator {
     this.iterator = iterator;
   }
 
+  @Override
   public void setContext(ScoringContext context) {
     this.context = context;
   }
 
+  @Override
   public ScoringContext getContext() {
     return this.context;
   }
@@ -46,8 +48,8 @@ public abstract class TransformIterator implements MovableIterator {
   }
 
   @Override
-  public boolean atCandidate(int identifier) {
-    return iterator.atCandidate(identifier);
+  public boolean hasMatch(int identifier) {
+    return iterator.hasMatch(identifier);
   }
 
   @Override

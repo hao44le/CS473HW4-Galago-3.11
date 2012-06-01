@@ -2,7 +2,7 @@
 package org.lemurproject.galago.core.retrieval.iterator;
 
 import java.io.IOException;
-import org.lemurproject.galago.core.index.ValueIterator;
+import org.lemurproject.galago.core.retrieval.query.AnnotatedNode;
 
 /**
  * This is a marker interface that represents any kind of
@@ -10,8 +10,7 @@ import org.lemurproject.galago.core.index.ValueIterator;
  * 
  * @author trevor
  */
-public interface MovableIterator extends StructuredIterator,
-        Comparable<MovableIterator> {
+public interface MovableIterator extends ContextualIterator, StructuredIterator, Comparable<MovableIterator> {
 
   /**
    * returns the current candidate
@@ -22,7 +21,7 @@ public interface MovableIterator extends StructuredIterator,
   /**
    * returns true if the iterator is at this candidate
    */
-  public boolean atCandidate(int identifier);
+  public boolean hasMatch(int identifier);
 
   /**
    * returns true if the iterator has data for ALL candidates
@@ -78,5 +77,9 @@ public interface MovableIterator extends StructuredIterator,
    */
   public long totalEntries();
   
+  /**
+   * Returns an AnnotatedNode representation of the current state of this iterator
+   */
+  public AnnotatedNode getAnnotatedNode() throws IOException;
 }
 

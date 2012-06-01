@@ -4,8 +4,10 @@ package org.lemurproject.galago.core.index.mem;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import org.lemurproject.galago.core.index.KeyIterator;
@@ -18,6 +20,7 @@ import org.lemurproject.galago.core.retrieval.iterator.*;
 import org.lemurproject.galago.core.retrieval.query.Node;
 import org.lemurproject.galago.core.retrieval.query.NodeType;
 import org.lemurproject.galago.core.retrieval.processing.ScoringContext;
+import org.lemurproject.galago.core.retrieval.query.AnnotatedNode;
 import org.lemurproject.galago.tupleflow.FakeParameters;
 import org.lemurproject.galago.tupleflow.Parameters;
 import org.lemurproject.galago.tupleflow.Utility;
@@ -31,7 +34,7 @@ import org.lemurproject.galago.tupleflow.VByteInput;
  * In-memory posting index
  *
  */
-public class MemorySparseFloatIndex implements MemoryIndexPart {
+public class MemorySparseDoubleIndex implements MemoryIndexPart {
 
   // this could be a bit big -- but we need random access here
   // should use a trie (but java doesn't have one?)
@@ -41,7 +44,7 @@ public class MemorySparseFloatIndex implements MemoryIndexPart {
   protected long collectionPostingsCount = 0;
   protected Stemmer stemmer = null;
 
-  public MemorySparseFloatIndex(Parameters parameters) throws Exception {
+  public MemorySparseDoubleIndex(Parameters parameters) throws Exception {
     this.parameters = parameters;
 
     if (parameters.containsKey("stemmer")) {
@@ -65,12 +68,12 @@ public class MemorySparseFloatIndex implements MemoryIndexPart {
     if (!postings.containsKey(key)) {
       PostingList postingList = new PostingList(key);
       MovableScoreIterator mi = (MovableScoreIterator) iterator;
-      ScoringContext c = (mi instanceof ContextualIterator) ? ((ContextualIterator) mi).getContext() : null;
+      ScoringContext c = mi.getContext();
       while (!mi.isDone()) {
         int document = mi.currentCandidate();
         c.document = document;
         c.moveLengths(document);
-        if (mi.atCandidate(document)) {
+        if (mi.hasMatch(document)) {
           double score = mi.score();
           postingList.add(document, score);
         }
@@ -83,6 +86,11 @@ public class MemorySparseFloatIndex implements MemoryIndexPart {
 
       mi.reset();
     }
+  }
+
+  @Override
+  public void removeIteratorData(byte[] key) throws IOException {
+    postings.remove(key);
   }
 
   // Posting List Reader functions
@@ -211,7 +219,7 @@ public class MemorySparseFloatIndex implements MemoryIndexPart {
       maxScore = Math.max(maxScore, score);
       minScore = Math.min(minScore, score);
 
-      scores_cbb.addFloat((float) score);
+      scores_cbb.addDouble(score);
 
       termPostingsCount += 1;
     }
@@ -318,7 +326,6 @@ public class MemorySparseFloatIndex implements MemoryIndexPart {
     int currDocument;
     double currScore;
     boolean done;
-    ScoringContext context;
     Map<String, Object> modifiers;
 
     private ScoresIterator(PostingList postings) throws IOException {
@@ -368,7 +375,7 @@ public class MemorySparseFloatIndex implements MemoryIndexPart {
     }
 
     @Override
-    public boolean atCandidate(int identifier) {
+    public boolean hasMatch(int identifier) {
       return (!isDone() && identifier == currDocument);
     }
 
@@ -384,7 +391,7 @@ public class MemorySparseFloatIndex implements MemoryIndexPart {
         return;
       } else {
         currDocument += documents_reader.readInt();
-        currScore = scores_reader.readFloat();
+        currScore = scores_reader.readDouble();
       }
 
       iteratedDocs++;
@@ -436,17 +443,6 @@ public class MemorySparseFloatIndex implements MemoryIndexPart {
       return currentCandidate() - other.currentCandidate();
     }
 
-    // This will pass up topdocs information if it's available
-    @Override
-    public void setContext(ScoringContext context) {
-      this.context = context;
-    }
-
-    @Override
-    public ScoringContext getContext() {
-      return this.context;
-    }
-
     @Override
     public String getKeyString() throws IOException {
       return Utility.toString(postings.key);
@@ -455,6 +451,19 @@ public class MemorySparseFloatIndex implements MemoryIndexPart {
     @Override
     public byte[] getKeyBytes() throws IOException {
       return postings.key;
+    }
+
+    @Override
+    public AnnotatedNode getAnnotatedNode() throws IOException {
+      String type = "scores";
+      String className = this.getClass().getSimpleName();
+      String parameters = this.getKeyString();
+      int document = currentCandidate();
+      boolean atCandidate = hasMatch(this.context.document);
+      String returnValue = Double.toString(score());
+      List<AnnotatedNode> children = Collections.EMPTY_LIST;
+
+      return new AnnotatedNode(type, className, parameters, document, atCandidate, returnValue, children);
     }
   }
 }
