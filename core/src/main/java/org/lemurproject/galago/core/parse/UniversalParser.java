@@ -52,7 +52,7 @@ public class UniversalParser extends StandardStep<DocumentSplit, Document> {
         limit = Utility.uncompressLong(split.endKey, 0);
       }
     }
-    
+
     // Determine the file type either from the parameters
     // or from the guess in the splits
     String fileType;
@@ -62,7 +62,7 @@ public class UniversalParser extends StandardStep<DocumentSplit, Document> {
       fileType = split.fileType;
     }
 
-    try {	
+    try {
       if (fileType.equals("html")
               || fileType.equals("xml")
               || fileType.equals("txt")) {
@@ -84,7 +84,7 @@ public class UniversalParser extends StandardStep<DocumentSplit, Document> {
       } else if (fileType.equals("mbtei.page") || fileType.equals("mbtei")) {
         parser = new MBTEIPageParser(split, getLocalBufferedInputStream(split));
       } else if (fileType.equals("mbtei.book")) {
-	parser = new MBTEIBookParser(split, getLocalBufferedInputStream(split));
+        parser = new MBTEIBookParser(split, getLocalBufferedInputStream(split));
       } else {
         throw new IOException("Unknown fileType: " + fileType
                 + " for fileName: " + split.fileName);
@@ -109,7 +109,7 @@ public class UniversalParser extends StandardStep<DocumentSplit, Document> {
         break;
       }
     }
-    
+
     if (parser != null) {
       parser.close();
     }

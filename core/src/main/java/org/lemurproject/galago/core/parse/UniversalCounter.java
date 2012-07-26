@@ -83,7 +83,7 @@ public class UniversalCounter extends StandardStep<DocumentSplit, KeyValuePair> 
       } else if (fileType.equals("mbtei.page") || fileType.equals("mbtei")) {
         parser = new MBTEIPageParser(split, getLocalBufferedInputStream(split));
       } else if (fileType.equals("mbtei.book")) {
-	parser = new MBTEIBookParser(split, getLocalBufferedInputStream(split));
+        parser = new MBTEIBookParser(split, getLocalBufferedInputStream(split));
       } else {
         throw new IOException("Unknown fileType: " + fileType
                 + " for fileName: " + split.fileName);
