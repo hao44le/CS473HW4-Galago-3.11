@@ -14,36 +14,39 @@ import org.lemurproject.galago.core.types.DocumentSplit;
 import org.lemurproject.galago.tupleflow.Parameters;
 
 /**
- * Generic superclass for dealing with events.
- * You can instantiate this and run it, but it will do nothing.
- * Subclass and use the provided methods to set actions to 
- * process start/end and character events in the XML stream.
- * Attributes should be handled while handling the start event
- * that the attributes are inside.
+ * Generic superclass for dealing with events. You can instantiate this and run
+ * it, but it will do nothing. Subclass and use the provided methods to set
+ * actions to process start/end and character events in the XML stream.
+ * Attributes should be handled while handling the start event that the
+ * attributes are inside.
  *
- * Actions are checked/removed by their regular expression patterns.
- * It is suggested that you simply pass in the Pattern if you have
- * it, as this will result in faster checking. However passing in
- * just the String may be more convenient.
+ * Actions are checked/removed by their regular expression patterns. It is
+ * suggested that you simply pass in the Pattern if you have it, as this will
+ * result in faster checking. However passing in just the String may be more
+ * convenient.
  *
- * Methods that can serve as actions must fit one of the following
- * signatures:
- * 
- * - public void methodName(int eventType);
- * - public void methodName(int eventType, Pattern matchingPattern);
+ * Methods that can serve as actions must fit one of the following signatures:
  *
- * For character actions only the first form is valid, since the match
- * is only on the event. Yes, they have to be public. DO NOT FORGET THIS.
- * Anything else creates uninformative null pointer bugs.
+ * - public void methodName(int eventType); - public void methodName(int
+ * eventType, Pattern matchingPattern);
+ *
+ * For character actions only the first form is valid, since the match is only
+ * on the event. Yes, they have to be public. DO NOT FORGET THIS. Anything else
+ * creates uninformative null pointer bugs.
  *
  * @author irmarc
  */
-public class MBTEIParserBase extends DocumentStreamParser {
+public abstract class MBTEIParserBase extends DocumentStreamParser {
   // For XML stream processing
 
   protected StreamReaderDelegate reader;
   protected XMLInputFactory factory;
   protected DocumentSplit split;
+  int contentLength;  // use this to count actual terms, not tags.
+
+  // This is called when the reader is out of tokens to
+  // produce, but the buffer of read tokens is non-empty.
+  public abstract void cleanup();
 
   // Using these directly is either tedious or stupid to
   // do. Use the functions provided.
@@ -202,6 +205,12 @@ public class MBTEIParserBase extends DocumentStreamParser {
     }
   }
 
+  protected void clearAllActions() {
+    startElementActions.clear();
+    endElementActions.clear();
+    charactersAction = null;
+  }
+
   protected void clearEndElementActions() {
     endElementActions.clear();
   }
@@ -280,8 +289,14 @@ public class MBTEIParserBase extends DocumentStreamParser {
         return parsedDocument;
       }
 
-      // If we're out of tokens, just return null.
-      return null;
+      // If there are no more tokens to consume but
+      // the buffer is non-empty, try to emit the
+      // last document.
+      if (buffer.length() > 0) {
+        cleanup();
+      }
+      // Return the result of cleanup - either a document or null
+      return parsedDocument;
     } catch (Exception e) {
       System.err.printf("EXCEPTION [%s,%s]: %s\n",
               getArchiveIdentifier(),
@@ -301,6 +316,12 @@ public class MBTEIParserBase extends DocumentStreamParser {
       }
     }
   }
+  // UTILITY MATCHERS
+  Pattern matchAll = Pattern.compile("[a-zA-Z0-9-_]+");
+  Pattern textTag = Pattern.compile("text");
+  Pattern teiTag = Pattern.compile("TEI", Pattern.CASE_INSENSITIVE);
+  Pattern wordTag = Pattern.compile("w");
+  Pattern nameTag = Pattern.compile("name");
 
   // UTILITY FUNCTIONS
   public void echo(int eventType) {
@@ -327,6 +348,18 @@ public class MBTEIParserBase extends DocumentStreamParser {
       buffer.append("\"");
     }
     buffer.append(">");
+  }
+
+  // This needs some more focus. What do we put around punctuation?
+  // Right now it simply appends a space after every token. Probably
+  // not what we want.
+  public void echoFormAttribute(int ignored) {
+    String formValue = reader.getAttributeValue(null, "form");
+    String scrubbed = scrub(formValue);
+    if (scrubbed.length() > 0) {
+      buffer.append(scrubbed).append(" ");
+      ++contentLength;
+    }
   }
 
   public String scrub(String dirty) {

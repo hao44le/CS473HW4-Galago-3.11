@@ -11,11 +11,10 @@ import org.lemurproject.galago.tupleflow.Parameters;
  * S0 = starting state. Reads in header information. Stay in this state until
  * you see the "text" open tag, then head to S1.
  *
- * S1 = "w" tags trigger a read from the "form" attribute, which is the 
- *          outputted string.
- *      "pb" open tag triggers a document emission unless there's no content.
- *      "name" opening and closing tags are echoed to the output string.
- *      "text" and "TEI" closing tags are also echoed to the output.
+ * S1 = "w" tags trigger a read from the "form" attribute, which is the
+ * outputted string. "pb" open tag triggers a document emission unless there's
+ * no content. "name" opening and closing tags are echoed to the output string.
+ * "text" and "TEI" closing tags are also echoed to the output.
  *
  * S1 is a terminal state.
  *
@@ -43,8 +42,8 @@ class MBTEIPageParser extends MBTEIBookParser {
 
     // Now set up our normal processing matchers
     addStartElementAction(wordTag, "echoFormAttribute");
-    addStartElementAction(nameTag, "echoWithAttributes");
-    addEndElementAction(nameTag, "echo");
+    addStartElementAction(nameTag, "transformNameTag");
+    addEndElementAction(nameTag, "transformNameTag");
     addEndElementAction(textTag, "echo");
     addStartElementAction(pageBreakTag, "emitSingleDocument");
   }
@@ -59,13 +58,14 @@ class MBTEIPageParser extends MBTEIBookParser {
     if (contentLength > 0) {
       StringBuilder documentContent = new StringBuilder(header);
       documentContent.append("<text>");
-      documentContent.append(buffer);
+      documentContent.append(buffer.toString().trim());
       documentContent.append("</text></TEI>");
       String documentIdentifier = String.format("%s_%s",
               getArchiveIdentifier(),
               pageNumber);
       parsedDocument = new Document(documentIdentifier,
               documentContent.toString());
+      parsedDocument.metadata = metadata;
     }
     contentLength = 0;
     pageNumber = reader.getAttributeValue(null, "n");

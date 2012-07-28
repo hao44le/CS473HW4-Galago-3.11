@@ -1,29 +1,14 @@
 // BSD License (http://lemurproject.org/galago-license)
 package org.lemurproject.galago.core.parse;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
-import java.io.EOFException;
-import java.io.FileInputStream;
-
-import java.lang.reflect.Constructor;
-import java.util.logging.Level;
-import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
-import org.lemurproject.galago.tupleflow.Counter;
-import org.lemurproject.galago.tupleflow.InputClass;
-import org.lemurproject.galago.tupleflow.OutputClass;
-import org.lemurproject.galago.tupleflow.StandardStep;
-import org.lemurproject.galago.tupleflow.execution.Verified;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.lang.reflect.Constructor;
 import java.util.HashMap;
+import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.zip.GZIPInputStream;
-import org.lemurproject.galago.tupleflow.StreamCreator;
-import org.lemurproject.galago.tupleflow.TupleFlowParameters;
 import org.lemurproject.galago.core.types.DocumentSplit;
-import org.lemurproject.galago.tupleflow.Parameters;
-import org.lemurproject.galago.tupleflow.Utility;
+import org.lemurproject.galago.tupleflow.*;
+import org.lemurproject.galago.tupleflow.execution.Verified;
 
 /**
  *

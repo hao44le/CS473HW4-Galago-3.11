@@ -8,9 +8,9 @@ import java.util.Map;
 import org.lemurproject.galago.core.index.LengthsReader;
 
 /**
- * Currently represents the context that the entire query processor shares.
- * This is the most basic context we use.
- * 
+ * Currently represents the context that the entire query processor shares. This
+ * is the most basic context we use.
+ *
  * The lengths are generally managed from this construct.
  *
  * @author irmarc
@@ -49,8 +49,14 @@ public class ScoringContext {
   public void moveLengths(int position) {
     try {
       for (Map.Entry<String, LengthsReader.LengthsIterator> pair : lengths.entrySet()) {
-        pair.getValue().moveTo(position);
-        current.put(pair.getKey(), pair.getValue().getCurrentLength());
+        if (pair == null) {
+          System.err.printf("Missing pair.\n");
+        } else if (pair.getValue() == null) {
+          System.err.printf("Missing value for key %s.\n", pair.getKey());
+        } else {
+          pair.getValue().moveTo(position);
+          current.put(pair.getKey(), pair.getValue().getCurrentLength());
+        }
       }
     } catch (IOException ioe) {
       throw new RuntimeException(ioe);
