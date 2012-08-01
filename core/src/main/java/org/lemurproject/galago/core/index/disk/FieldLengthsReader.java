@@ -7,7 +7,9 @@ import java.util.List;
 import java.util.Map;
 import org.lemurproject.galago.core.index.LengthsReader;
 import org.lemurproject.galago.core.index.ValueIterator;
+import org.lemurproject.galago.core.index.disk.WindowIndexReader.TermExtentIterator;
 import org.lemurproject.galago.core.retrieval.iterator.MovableIterator;
+import org.lemurproject.galago.core.retrieval.processing.ScoringContext;
 import org.lemurproject.galago.core.retrieval.query.AnnotatedNode;
 import org.lemurproject.galago.core.retrieval.query.Node;
 import org.lemurproject.galago.core.retrieval.query.NodeType;
@@ -46,8 +48,12 @@ public class FieldLengthsReader implements LengthsReader {
     this.field = f;
   }
 
-  public LengthsIterator getLengthsIterator(String f) throws IOException {
-    return new LengthIterator(reader.getTermExtents(f));
+  public LengthsIterator getLengthsIterator(String f, ScoringContext ctx) throws IOException {
+    TermExtentIterator exts = reader.getTermExtents(f);
+    LengthIterator lns = new LengthIterator(exts);
+    exts.setContext(ctx);
+    lns.setContext(ctx);
+    return lns;
   }
 
   @Override
@@ -107,6 +113,7 @@ public class FieldLengthsReader implements LengthsReader {
     public int getCurrentLength() {
       if (length < 0) {
         length = 0;
+        // extentsIterator should check context for the document id.
         ExtentArray extents = extentsIterator.extents();
         for (int i = 0; i < extents.size(); i++) {
           length += extents.end(i) - extents.begin(i);
