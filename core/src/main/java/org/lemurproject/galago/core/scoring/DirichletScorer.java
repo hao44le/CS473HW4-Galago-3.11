@@ -6,11 +6,12 @@ import org.lemurproject.galago.core.retrieval.iterator.MovableCountIterator;
 import org.lemurproject.galago.core.retrieval.query.NodeParameters;
 import org.lemurproject.galago.core.retrieval.structured.RequiredParameters;
 import org.lemurproject.galago.core.retrieval.structured.RequiredStatistics;
+import org.lemurproject.galago.tupleflow.Parameters;
 
 /**
  * A Dirichlet smoothing node, applied over a raw term count node.
  *
- * @author trevor
+ * @author trevor, irmarc
  */
 @RequiredStatistics(statistics = {"collectionProbability"})
 @RequiredParameters(parameters = {"mu"})
@@ -20,14 +21,28 @@ public class DirichletScorer implements ScoringFunction {
   double mu;
 
   public DirichletScorer(NodeParameters parameters, MovableCountIterator iterator) throws IOException {
+
     mu = parameters.get("mu", 1500D);
     background = parameters.getDouble("collectionProbability");
   }
 
-  @Override
   public double score(int count, int length) {
     double numerator = count + (mu * background);
     double denominator = length + mu;
     return Math.log(numerator / denominator);
+  }
+
+  public double score(int count, int length, double externalBk) {
+    double numerator = count + (mu * externalBk);
+    double denominator = length + mu;
+    return Math.log(numerator / denominator);
+  }
+
+  public double getBackground() {
+    return background;
+  }
+
+  public void setBackground(double bk) {
+    background = bk;
   }
 }

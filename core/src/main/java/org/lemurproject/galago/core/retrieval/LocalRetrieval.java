@@ -32,6 +32,7 @@ import org.lemurproject.galago.core.retrieval.processing.ScoringContext;
 import org.lemurproject.galago.core.retrieval.iterator.ScoreIterator;
 import org.lemurproject.galago.core.retrieval.iterator.ScoringFunctionIterator;
 import org.lemurproject.galago.core.retrieval.iterator.StructuredIterator;
+import org.lemurproject.galago.core.retrieval.structured.ContextFactory;
 import org.lemurproject.galago.tupleflow.Parameters;
 import org.lemurproject.galago.tupleflow.Utility;
 
@@ -47,7 +48,7 @@ import org.lemurproject.galago.tupleflow.Utility;
  * @author irmarc
  */
 public class LocalRetrieval implements Retrieval {
-  
+
   protected final Logger logger = Logger.getLogger(this.getClass().getName());
   protected Index index;
   protected FeatureFactory features;
@@ -62,18 +63,18 @@ public class LocalRetrieval implements Retrieval {
   public LocalRetrieval(Index index) throws IOException {
     this(index, new Parameters());
   }
-  
+
   public LocalRetrieval(String filename, Parameters parameters)
           throws FileNotFoundException, IOException, Exception {
     this(new DiskIndex(filename), parameters);
   }
-  
+
   public LocalRetrieval(Index index, Parameters parameters) throws IOException {
     this.globalParameters = parameters;
     setIndex(index);
   }
-  
-  private void setIndex(Index indx) throws IOException {
+
+  protected void setIndex(Index indx) throws IOException {
     this.index = indx;
     features = new FeatureFactory(globalParameters);
   }
@@ -95,12 +96,12 @@ public class LocalRetrieval implements Retrieval {
   public CollectionStatistics getRetrievalStatistics(String partName) throws IOException {
     return index.getCollectionStatistics(partName);
   }
-  
+
   @Override
   public CollectionStatistics getRetrievalStatistics() throws IOException {
     return index.getCollectionStatistics();
   }
-  
+
   @Override
   public Parameters getGlobalParameters() {
     return this.globalParameters;
@@ -124,16 +125,16 @@ public class LocalRetrieval implements Retrieval {
     }
     return p;
   }
-  
+
   public Index getIndex() {
     return index;
   }
-  
+
   @Override
   public Document getDocument(String identifier, Parameters p) throws IOException {
     return this.index.getDocument(identifier, p);
   }
-  
+
   @Override
   public Map<String, Document> getDocuments(List<String> identifier, Parameters p) throws IOException {
     return this.index.getDocuments(identifier, p);
@@ -148,7 +149,7 @@ public class LocalRetrieval implements Retrieval {
     root = transformQuery(root, p);
     return runQuery(root, p);
   }
-  
+
   @Override
   public ScoredDocument[] runQuery(Node queryTree) throws Exception {
     return runQuery(queryTree, new Parameters());
@@ -162,11 +163,11 @@ public class LocalRetrieval implements Retrieval {
 
     // Figure out if there's a working set to deal with
     int[] workingSet = null;
-    
+
     if (queryParams.containsKey("working")) {
       workingSet = this.getDocumentIds(queryParams.getList("working"));
     }
-    
+
     if (workingSet != null) {
       pm.defineWorkingSet(workingSet);
     }
@@ -190,7 +191,7 @@ public class LocalRetrieval implements Retrieval {
     if (results == null || results.length == 0) {
       return null;
     }
-    
+
     for (int i = 0; i < results.length; i++) {
       results[i].source = indexId;
       results[i].rank = i + 1;
@@ -198,9 +199,9 @@ public class LocalRetrieval implements Retrieval {
 
     // this is to assign proper document names
     T[] byID = Arrays.copyOf(results, results.length);
-    
+
     Arrays.sort(byID, new Comparator<T>() {
-      
+
       @Override
       public int compare(T o1, T o2) {
         return Utility.compare(o1.document, o2.document);
@@ -212,7 +213,7 @@ public class LocalRetrieval implements Retrieval {
     namesIterator.setContext(sc);
 
     for (T doc : byID) {
-      namesIterator.moveTo(doc.document);
+      namesIterator.syncTo(doc.document);
       sc.document = doc.document;
 
       if (doc.document == namesIterator.getCurrentIdentifier()) {
@@ -223,20 +224,19 @@ public class LocalRetrieval implements Retrieval {
         doc.documentName = index.getName(doc.document);
       }
     }
-    
+
     return results;
   }
-  
+
   public StructuredIterator createIterator(Parameters queryParameters, Node node, ScoringContext context) throws Exception {
     if (globalParameters.get("shareNodes", true)) {
       if (queryParameters.get("shareNodes", true)) {
         return createNodeMergedIterator(node, context, new HashMap());
       }
     }
-    
     return createNodeMergedIterator(node, context, null);
   }
-  
+
   protected StructuredIterator createNodeMergedIterator(Node node, ScoringContext context,
           HashMap<String, StructuredIterator> queryIteratorCache)
           throws Exception {
@@ -247,17 +247,17 @@ public class LocalRetrieval implements Retrieval {
     if (queryIteratorCache != null && queryIteratorCache.containsKey(node.toString())) {
       return queryIteratorCache.get(node.toString());
     }
-    
+
     for (Node internalNode : node.getInternalNodes()) {
       StructuredIterator internalIterator = createNodeMergedIterator(internalNode, context, queryIteratorCache);
       internalIterators.add(internalIterator);
     }
-    
+
     iterator = index.getIterator(node);
     if (iterator == null) {
       iterator = features.getIterator(node, internalIterators);
     }
-    
+
     if (ContextualIterator.class.isInstance(iterator) && (context != null)) {
       ((ContextualIterator) iterator).setContext(context);
     }
@@ -268,19 +268,19 @@ public class LocalRetrieval implements Retrieval {
     }
     return iterator;
   }
-  
+
   @Override
   public Node transformQuery(Node queryTree, Parameters queryParams) throws Exception {
     return transformQuery(features.getTraversals(this, queryTree, queryParams), queryTree);
   }
-  
-  private Node transformQuery(List<Traversal> traversals, Node queryTree) throws Exception {
+
+  protected Node transformQuery(List<Traversal> traversals, Node queryTree) throws Exception {
     for (Traversal traversal : traversals) {
       queryTree = StructuredQuery.walk(traversal, queryTree);
     }
     return queryTree;
   }
-  
+
   @Override
   public NodeStatistics nodeStatistics(String nodeString) throws Exception {
     // first parse the node
@@ -289,7 +289,7 @@ public class LocalRetrieval implements Retrieval {
     root = transformQuery(root, new Parameters());
     return nodeStatistics(root);
   }
-  
+
   @Override
   public NodeStatistics nodeStatistics(Node root) throws Exception {
     NodeStatistics stats = new NodeStatistics();
@@ -299,12 +299,12 @@ public class LocalRetrieval implements Retrieval {
     stats.nodeFrequency = 0;
     stats.collectionLength = getRetrievalStatistics().collectionLength;
     stats.documentCount = getRetrievalStatistics().documentCount;
-    
-    ScoringContext sc = new ScoringContext();
+
+    ScoringContext sc = ContextFactory.createContext(globalParameters);
     StructuredIterator structIterator = createIterator(new Parameters(), root, sc);
     if (AggregateIterator.class.isInstance(structIterator)) {
       stats = ((AggregateIterator) structIterator).getStatistics();
-      
+
     } else if (structIterator instanceof MovableCountIterator) {
       MovableCountIterator iterator = (MovableCountIterator) structIterator;
       while (!iterator.isDone()) {
@@ -315,13 +315,13 @@ public class LocalRetrieval implements Retrieval {
         }
         iterator.movePast(iterator.currentCandidate());
       }
-      
+
     } else {
       throw new IllegalArgumentException("Node " + root.toString() + " did not return a counting iterator.");
     }
     return stats;
   }
-  
+
   @Override
   public NodeType getNodeType(Node node) throws Exception {
     NodeType nodeType = index.getNodeType(node);
@@ -330,7 +330,7 @@ public class LocalRetrieval implements Retrieval {
     }
     return nodeType;
   }
-  
+
   @Override
   public QueryType getQueryType(Node node) throws Exception {
     if (node.getOperator().equals("text")) {
@@ -349,22 +349,22 @@ public class LocalRetrieval implements Retrieval {
       return QueryType.RANKED;
     }
   }
-  
+
   @Override
   public int getDocumentLength(int docid) throws IOException {
     return index.getLength(docid);
   }
-  
+
   @Override
   public int getDocumentLength(String docname) throws IOException {
     return index.getLength(index.getIdentifier(docname));
   }
-  
+
   @Override
   public String getDocumentName(int docid) throws IOException {
     return index.getName(docid);
   }
-  
+
   public int[] getDocumentIds(List<String> docnames) throws IOException {
     int[] ids = new int[docnames.size()];
     int i = 0;

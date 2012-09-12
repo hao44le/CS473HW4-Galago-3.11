@@ -20,6 +20,7 @@ public class ScoringFunctionIterator extends TransformIterator implements Movabl
   protected NodeParameters np;
   protected ScoringFunction function;
   protected CountIterator countIterator;
+  protected double max;
 
   public ScoringFunctionIterator(NodeParameters np, MovableCountIterator iterator, ScoringFunction function) throws IOException {
     super(iterator);
@@ -45,7 +46,7 @@ public class ScoringFunctionIterator extends TransformIterator implements Movabl
 
   @Override
   public double maximumScore() {
-    return Double.POSITIVE_INFINITY;
+    return max;
   }
 
   @Override
@@ -62,8 +63,30 @@ public class ScoringFunctionIterator extends TransformIterator implements Movabl
     boolean atCandidate = hasMatch(this.context.document);
     String returnValue = Double.toString(score());
     List<AnnotatedNode> children = Collections.singletonList(this.iterator.getAnnotatedNode());
-    String extra = Integer.toString( context.getLength() );
-    
+    String extra = Integer.toString(context.getLength());
+
     return new AnnotatedNode(type, className, parameters, document, atCandidate, returnValue, extra, children);
+  }
+
+  /**
+   * Non-essential method to forward the count iterator key.
+   * @return 
+   */
+  public byte[] key() {
+    return ((CountIterator) iterator).key();
+  }
+
+  public double getMaxTF(NodeParameters p, MovableCountIterator it) {
+    int count = 0;
+    if (p.containsKey("maximumCount")) {
+      count = (int) p.getLong("maximumCount");
+    } else if (it != null) {
+      count = it.maximumCount();
+    } else {
+      return Double.POSITIVE_INFINITY;
+    }
+
+    // We have a non-zero number
+    return function.score(count, count);
   }
 }
