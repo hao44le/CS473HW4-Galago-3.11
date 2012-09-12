@@ -499,7 +499,7 @@ public class MemoryWindowIndex implements MemoryIndexPart, AggregateReader {
     }
 
     @Override
-    public void moveTo(int identifier) throws IOException {
+    public void syncTo(int identifier) throws IOException {
       // TODO implement skip lists
 
       while (!isDone() && (currDocument < identifier)) {
@@ -563,6 +563,11 @@ public class MemoryWindowIndex implements MemoryIndexPart, AggregateReader {
     @Override
     public String getKeyString() throws IOException {
       return Utility.toString(postings.key);
+    }
+
+    @Override
+    public byte[] key() {
+      return postings.key;
     }
 
     @Override

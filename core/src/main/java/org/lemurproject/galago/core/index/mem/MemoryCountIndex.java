@@ -430,6 +430,11 @@ public class MemoryCountIndex implements MemoryIndexPart, AggregateReader {
     }
 
     @Override
+    public byte[] key() {
+      return Utility.fromString("MemCI");
+    }
+
+    @Override
     public boolean hasMatch(int identifier) {
       return (!isDone() && identifier == currDocument);
     }
@@ -455,7 +460,7 @@ public class MemoryCountIndex implements MemoryIndexPart, AggregateReader {
     }
 
     @Override
-    public void moveTo(int identifier) throws IOException {
+    public void syncTo(int identifier) throws IOException {
       // TODO: need to implement skip lists
 
       while (!isDone() && (currDocument < identifier)) {

@@ -173,6 +173,11 @@ public class BackgroundLMReader extends KeyValueReader implements AggregateReade
     }
 
     @Override
+    public byte[] key() {
+      return this.iterator.getKey();
+    }
+    
+    @Override
     public byte[] getKeyBytes() throws IOException {
       return this.iterator.getKey();
     }
@@ -190,7 +195,7 @@ public class BackgroundLMReader extends KeyValueReader implements AggregateReade
     }
 
     @Override
-    public void moveTo(int identifier) throws IOException {
+    public void syncTo(int identifier) throws IOException {
       throw new UnsupportedOperationException("Not supported yet.");
     }
 
