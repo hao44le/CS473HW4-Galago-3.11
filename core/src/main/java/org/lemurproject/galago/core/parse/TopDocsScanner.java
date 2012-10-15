@@ -9,7 +9,7 @@ import java.util.Comparator;
 import java.util.PriorityQueue;
 import java.util.logging.Logger;
 import org.lemurproject.galago.core.index.LengthsReader;
-import org.lemurproject.galago.core.index.LengthsReader.Iterator;
+import org.lemurproject.galago.core.index.LengthsReader.LengthsIterator;
 import org.lemurproject.galago.core.index.disk.DiskLengthsReader;
 import org.lemurproject.galago.core.index.disk.PositionIndexReader;
 import org.lemurproject.galago.core.index.disk.DiskIndex;
@@ -52,7 +52,7 @@ public class TopDocsScanner extends StandardStep<KeyValuePair, TopDocsEntry> {
   Counter counter;
   PriorityQueue<TopDocsEntry> topdocs;
   PositionIndexReader partReader;
-  LengthsReader.Iterator docLengths;
+  LengthsReader.LengthsIterator docLengths;
   DiskLengthsReader docReader;
   MovableCountIterator extentIterator;
   TopDocsEntry tde;
@@ -89,7 +89,7 @@ public class TopDocsScanner extends StandardStep<KeyValuePair, TopDocsEntry> {
     docLengths.reset();
     while (!extentIterator.isDone()) {
       count++;
-      docLengths.moveTo(extentIterator.currentCandidate());
+      docLengths.syncTo(extentIterator.currentCandidate());
       assert (docLengths.getCurrentIdentifier() == extentIterator.currentCandidate());
       int length = docLengths.getCurrentLength();
       double probability = (0.0 + extentIterator.count())

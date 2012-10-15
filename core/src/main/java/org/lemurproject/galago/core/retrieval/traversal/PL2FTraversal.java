@@ -15,22 +15,29 @@ import org.lemurproject.galago.core.util.TextPartAssigner;
 import org.lemurproject.galago.tupleflow.Parameters;
 
 /**
- * Transforms a #pl2f( text1 text2 ) node into the fully expanded PL2F model
- * described in "Combining Fields in Known-Item Email Search" by Macdonald and
- * Ounis.
+ * Transforms a #pl2f( text1 text2 ) node into the fully expanded
+ * PL2F model described in "Combining Fields in Known-Item Email Search"
+ * by Macdonald and Ounis.
  *
  * It's not the most elaborate description, but it's succinct and easy to
  * follow.
  *
  * Given f1 and f2, Expanded form should be something like:
  *
- * #combine:norm=false( #feature:dfr:qfmax=1:qf=1( # combine:norm=false(
- * #feature:pl2f:lengths=f1( #counts:term1:part=field.f1() )
- * #feature:pl2f:lengths=f2( #counts:term1:part=field.f2() ) ) )
- * #feature:dfr:qfmax=1:qf=1( #combine:norm=false( #feature:pl2f:lengths=f1(
- * #counts:term1:part=field.f1() ) #feature:pl2f:lengths=f2(
- * #counts:term1:part=field.f2() ) ) ) )
- *
+ * #combine:norm=false(
+ *  #feature:dfr:qfmax=1:qf=1(
+ *    # combine:norm=false(
+ *      #feature:pl2f:lengths=f1( #counts:term1:part=field.f1() )
+ *      #feature:pl2f:lengths=f2( #counts:term1:part=field.f2() )
+ *    )
+ *  )
+ *  #feature:dfr:qfmax=1:qf=1(
+ *    #combine:norm=false(
+ *      #feature:pl2f:lengths=f1( #counts:term1:part=field.f1() )
+ *      #feature:pl2f:lengths=f2( #counts:term1:part=field.f2() )
+ *    )
+ *  )
+ * )
  * @author irmarc
  */
 public class PL2FTraversal extends Traversal {
@@ -82,6 +89,7 @@ public class PL2FTraversal extends Traversal {
     if (levels == 0 && original.getOperator().equals("pl2f")) {
       queryParams.set("numberOfTerms", qTermCounts.keys().length);
       queryParams.set("numPotentials", qTermCounts.keys().length);
+      queryParams.set("deltaWeightsSet", true);
       // Let's get qfmax
       int[] counts = qTermCounts.values();
       for (int i = 0; i < counts.length; i++) {
@@ -153,7 +161,9 @@ public class PL2FTraversal extends Traversal {
 
   private void setTermStatistics(Node dfr, String t, double normalizer) throws Exception {
     Node counter = new Node("counts", t);
-    Node parted = TextPartAssigner.assignPart(counter, retrieval, queryParams);
+    Node parted = TextPartAssigner.assignPart(counter,
+            retrieval.getGlobalParameters(),
+            retrieval.getAvailableParts());
     NodeStatistics ns = retrieval.nodeStatistics(parted);
     dfr.getNodeParameters().set("nodeFrequency", ns.nodeFrequency);
     dfr.getNodeParameters().set("documentCount", ns.documentCount);

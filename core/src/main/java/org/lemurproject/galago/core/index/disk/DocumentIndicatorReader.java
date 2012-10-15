@@ -22,6 +22,7 @@ import org.lemurproject.galago.tupleflow.Utility;
 /**
  * 
  * @author sjh
+ * @author irmarc
  */
 public class DocumentIndicatorReader extends KeyValueReader {
 
@@ -144,14 +145,17 @@ public class DocumentIndicatorReader extends KeyValueReader {
 
     @Override
     public boolean hasAllCandidates() {
-      return true;
+      return false;
     }
-
+    
+    @Override
+    public boolean hasMatch(int document) {
+      return super.hasMatch(document) && indicator(document);
+    }
+    
     @Override
     public boolean indicator(int document) {
-      if (document != ((KeyIterator) iterator).getCurrentDocument()) {
-        return defInst;
-      } else {
+      if (document == currentCandidate()) {
         try {
           return ((KeyIterator) iterator).getCurrentIndicator();
         } catch (IOException ex) {
@@ -159,6 +163,7 @@ public class DocumentIndicatorReader extends KeyValueReader {
           throw new RuntimeException("Failed to read indicator file.");
         }
       }
+      return this.defInst;
     }
 
     @Override

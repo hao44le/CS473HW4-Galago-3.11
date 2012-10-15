@@ -16,7 +16,7 @@ import org.lemurproject.galago.tupleflow.Utility;
  *
  * @author trevor, sjh
  */
-public class CorpusSplitParser implements DocumentStreamParser {
+public class CorpusSplitParser extends DocumentStreamParser {
 
   DocumentReader reader;
   DocumentIterator iterator;
@@ -28,7 +28,7 @@ public class CorpusSplitParser implements DocumentStreamParser {
   }
 
   public CorpusSplitParser(DocumentSplit split, Parameters p) throws FileNotFoundException, IOException {
-    System.err.printf("Creating corpus split parser with parameters:\n%s\n", p.toPrettyString());
+    super(split, p);
     reader = new CorpusReader(split.fileName);
     iterator = (DocumentIterator) reader.getIterator();
     iterator.skipToKey(split.startKey);
@@ -38,12 +38,11 @@ public class CorpusSplitParser implements DocumentStreamParser {
       p.set("tags", false);
     }
     extractionParameters = p;
-    System.err.printf("Extraction parameters: %s\n", p.toPrettyString());
   }
 
   @Override
   public Document nextDocument() throws IOException {
-    if (iterator.isDone()) {
+    if (reader != null && iterator.isDone()) {
       return null;
     }
 
@@ -61,6 +60,10 @@ public class CorpusSplitParser implements DocumentStreamParser {
 
   @Override
   public void close() throws IOException {
-    reader.close();
+    if (reader != null) {
+      reader.close();
+      reader = null;
+      iterator = null;
+    }
   }
 }

@@ -21,23 +21,19 @@ import org.lemurproject.galago.tupleflow.Utility;
 /**
  * Reads documents lengths from a document lengths file. KeyValueIterator
  * provides a useful interface for dumping the contents of the file.
- * 
- * data stored in each document 'field' lengths list:
- * 
- *   stats:
- *  - number of non-zero document lengths (document count)
- *  - sum of document lengths (collection length)
- *  - average document length
- *  - maximum document length
- *  - minimum document length
- * 
- *   utility values:
- *  - first document id
- *  - last document id (all documents inbetween have a value)
- * 
- *   finally:
- *  - list of lengths (one per document)
  *
+ * data stored in each document 'field' lengths list:
+ *
+ * stats: - number of non-zero document lengths (document count) - sum of
+ * document lengths (collection length) - average document length - maximum
+ * document length - minimum document length
+ *
+ * utility values: - first document id - last document id (all documents
+ * inbetween have a value)
+ *
+ * finally: - list of lengths (one per document)
+ *
+ * @author irmarc
  * @author sjh
  */
 public class DiskLengthsReader extends KeyListReader implements LengthsReader {
@@ -77,7 +73,7 @@ public class DiskLengthsReader extends KeyListReader implements LengthsReader {
   }
 
   @Override
-  public LengthsReader.Iterator getLengthsIterator() throws IOException {
+  public LengthsReader.LengthsIterator getLengthsIterator() throws IOException {
     return new MemoryMapLengthsIterator(doc, documentLengths);
   }
 
@@ -160,7 +156,7 @@ public class DiskLengthsReader extends KeyListReader implements LengthsReader {
   }
 
   public class MemoryMapLengthsIterator extends ValueIterator
-          implements MovableCountIterator, LengthsReader.Iterator {
+          implements MovableCountIterator, LengthsReader.LengthsIterator {
 
     byte[] key;
     private MappedByteBuffer memBuffer;
@@ -207,6 +203,11 @@ public class DiskLengthsReader extends KeyListReader implements LengthsReader {
     }
 
     @Override
+    public byte[] key() {
+      return Utility.fromString("MMLI");
+    }
+
+    @Override
     public int currentCandidate() {
       return currDocument;
     }
@@ -217,7 +218,7 @@ public class DiskLengthsReader extends KeyListReader implements LengthsReader {
     }
 
     @Override
-    public void moveTo(int identifier) throws IOException {
+    public void syncTo(int identifier) throws IOException {
       currDocument = identifier;
       if (currDocument > lastDocument) {
         currDocument = lastDocument;
@@ -270,22 +271,18 @@ public class DiskLengthsReader extends KeyListReader implements LengthsReader {
 
     @Override
     public int count() {
-      return getCurrentLength();
-    }
-
-    @Override
-    public int maximumCount() {
-      return Integer.MAX_VALUE;
+      if (this.context.document == currDocument) {
+        return getLength(currDocument);
+      }
+      return 0;
     }
 
     @Override
     public int getCurrentLength() {
-      return getLength(currDocument);
-    }
-
-    @Override
-    public int getCurrentIdentifier() {
-      return this.currDocument;
+      if (this.context.document == currDocument) {
+        return getLength(currDocument);
+      }
+      return 0;
     }
 
     private int getLength(int document) {
@@ -295,7 +292,18 @@ public class DiskLengthsReader extends KeyListReader implements LengthsReader {
           return this.memBuffer.getInt(this.lengthsDataOffset + (4 * (document - firstDocument)));
         }
       }
+      System.out.printf("Returning 0.\n");
       return 0;
+    }
+
+    @Override
+    public int maximumCount() {
+      return Integer.MAX_VALUE;
+    }
+
+    @Override
+    public int getCurrentIdentifier() {
+      return this.currDocument;
     }
 
     @Override
@@ -329,7 +337,7 @@ public class DiskLengthsReader extends KeyListReader implements LengthsReader {
   }
 
   public class StreamLengthsIterator extends KeyListReader.ListIterator
-          implements MovableCountIterator, LengthsReader.Iterator {
+          implements MovableCountIterator, LengthsReader.LengthsIterator {
 
     private final BTreeIterator iterator;
     private DataStream streamBuffer;
@@ -392,7 +400,7 @@ public class DiskLengthsReader extends KeyListReader implements LengthsReader {
     }
 
     @Override
-    public void moveTo(int identifier) throws IOException {
+    public void syncTo(int identifier) throws IOException {
       assert (identifier >= currDocument);
 
       // we can't move past the last document
@@ -464,28 +472,32 @@ public class DiskLengthsReader extends KeyListReader implements LengthsReader {
     }
 
     @Override
-    public int maximumCount() {
-      return Integer.MAX_VALUE;
+    public int getCurrentLength() {
+      if (context.document == this.currDocument) {
+        // check if we need to read the length value from the stream
+        if (this.currLength < 0) {
+          // ensure a defaulty value
+          this.currLength = 0;
+          // check for range.
+          if (firstDocument <= currDocument && currDocument <= lastDocument) {
+            // seek to the required position - hopefully this will hit cache
+            this.streamBuffer.seek(lengthsDataOffset + (4 * (this.currDocument - firstDocument)));
+            try {
+              this.currLength = this.streamBuffer.readInt();
+            } catch (IOException ex) {
+              throw new RuntimeException(ex);
+            }
+          }
+        }
+        return currLength;
+      } else {
+        return 0;
+      }
     }
 
     @Override
-    public int getCurrentLength() {
-      // check if we need to read the length value from the stream
-      if (this.currLength < 0) {
-        // ensure a defaulty value
-        this.currLength = 0;
-        // check for range.
-        if (firstDocument <= currDocument && currDocument <= lastDocument) {
-          // seek to the required position - hopefully this will hit cache
-          this.streamBuffer.seek(lengthsDataOffset + (4 * (this.currDocument - firstDocument)));
-          try {
-            this.currLength = this.streamBuffer.readInt();
-          } catch (IOException ex) {
-            throw new RuntimeException(ex);
-          }
-        }
-      }
-      return currLength;
+    public int maximumCount() {
+      return Integer.MAX_VALUE;
     }
 
     @Override

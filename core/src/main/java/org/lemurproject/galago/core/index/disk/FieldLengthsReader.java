@@ -7,7 +7,9 @@ import java.util.List;
 import java.util.Map;
 import org.lemurproject.galago.core.index.LengthsReader;
 import org.lemurproject.galago.core.index.ValueIterator;
+import org.lemurproject.galago.core.index.disk.WindowIndexReader.TermExtentIterator;
 import org.lemurproject.galago.core.retrieval.iterator.MovableIterator;
+import org.lemurproject.galago.core.retrieval.processing.ScoringContext;
 import org.lemurproject.galago.core.retrieval.query.AnnotatedNode;
 import org.lemurproject.galago.core.retrieval.query.Node;
 import org.lemurproject.galago.core.retrieval.query.NodeType;
@@ -33,8 +35,8 @@ public class FieldLengthsReader implements LengthsReader {
 
   @Override
   public int getLength(int document) throws IOException {
-    LengthsReader.Iterator li = getLengthsIterator();
-    li.moveTo(document);
+    LengthsReader.LengthsIterator li = getLengthsIterator();
+    li.syncTo(document);
     if (li.hasMatch(document)) {
       return li.getCurrentLength();
     } else {
@@ -46,12 +48,16 @@ public class FieldLengthsReader implements LengthsReader {
     this.field = f;
   }
 
-  public Iterator getLengthsIterator(String f) throws IOException {
-    return new LengthIterator(reader.getTermExtents(f));
+  public LengthsIterator getLengthsIterator(String f, ScoringContext ctx) throws IOException {
+    TermExtentIterator exts = reader.getTermExtents(f);
+    LengthIterator lns = new LengthIterator(exts);
+    exts.setContext(ctx);
+    lns.setContext(ctx);
+    return lns;
   }
 
   @Override
-  public Iterator getLengthsIterator() throws IOException {
+  public LengthsIterator getLengthsIterator() throws IOException {
     return new LengthIterator(reader.getTermExtents(field));
   }
 
@@ -94,7 +100,7 @@ public class FieldLengthsReader implements LengthsReader {
     return reader.getManifest();
   }
 
-  public class LengthIterator extends ValueIterator implements LengthsReader.Iterator {
+  public class LengthIterator extends ValueIterator implements LengthsReader.LengthsIterator {
 
     private WindowIndexReader.TermExtentIterator extentsIterator;
     int length = -1;
@@ -107,6 +113,7 @@ public class FieldLengthsReader implements LengthsReader {
     public int getCurrentLength() {
       if (length < 0) {
         length = 0;
+        // extentsIterator should check context for the document id.
         ExtentArray extents = extentsIterator.extents();
         for (int i = 0; i < extents.size(); i++) {
           length += extents.end(i) - extents.begin(i);
@@ -131,8 +138,8 @@ public class FieldLengthsReader implements LengthsReader {
     }
 
     @Override
-    public void moveTo(int identifier) throws IOException {
-      extentsIterator.moveTo(identifier);
+    public void syncTo(int identifier) throws IOException {
+      extentsIterator.syncTo(identifier);
       length = -1;
     }
 

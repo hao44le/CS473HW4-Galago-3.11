@@ -76,7 +76,7 @@ public class MemorySparseDoubleIndex implements MemoryIndexPart {
       //  -> this cache should not be used for dirichlet scores
       double defaultScore = mi.score();
       PostingList postingList = new PostingList(key, defaultScore);
-      
+
       while (!mi.isDone()) {
         int document = mi.currentCandidate();
         c.document = document;
@@ -181,11 +181,13 @@ public class MemorySparseDoubleIndex implements MemoryIndexPart {
 
     KIterator kiterator = new KIterator();
     ScoresIterator viterator;
+    ScoringContext sc = new ScoringContext();
     while (!kiterator.isDone()) {
       viterator = (ScoresIterator) kiterator.getValueIterator();
       writer.processWord(kiterator.getKey());
-
+      viterator.setContext(sc);
       while (!viterator.isDone()) {
+        sc.document = viterator.currentCandidate();
         writer.processNumber(viterator.currentCandidate());
         writer.processTuple(viterator.score());
         viterator.movePast(viterator.currentCandidate());
@@ -411,7 +413,7 @@ public class MemorySparseDoubleIndex implements MemoryIndexPart {
     }
 
     @Override
-    public void moveTo(int identifier) throws IOException {
+    public void syncTo(int identifier) throws IOException {
       // TODO: need to implement skip lists
 
       while (!isDone() && (currDocument < identifier)) {

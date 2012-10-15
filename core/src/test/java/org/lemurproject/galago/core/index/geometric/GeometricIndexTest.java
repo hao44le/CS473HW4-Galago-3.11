@@ -17,6 +17,7 @@ import org.lemurproject.galago.core.parse.Document;
 import org.lemurproject.galago.core.retrieval.LocalRetrieval;
 import org.lemurproject.galago.core.retrieval.ScoredDocument;
 import org.lemurproject.galago.core.retrieval.iterator.MovableCountIterator;
+import org.lemurproject.galago.core.retrieval.processing.ScoringContext;
 import org.lemurproject.galago.core.retrieval.query.Node;
 import org.lemurproject.galago.core.retrieval.query.StructuredQuery;
 import org.lemurproject.galago.tupleflow.FakeParameters;
@@ -61,38 +62,53 @@ public class GeometricIndexTest extends TestCase {
       assertTrue(stats.collectionLength == 1275);
       assertTrue(stats.documentCount == 255);
 
-      NamesReader.Iterator names = index.getNamesIterator();
-      names.moveTo(99);
+
+      ScoringContext sc = new ScoringContext();
+      
+      NamesReader.NamesIterator names = index.getNamesIterator();
+      names.setContext(sc);
+      names.syncTo(99);
+      sc.document = 99;
       assertEquals(names.getCurrentName(), "DOC-" + 99);
       names.movePast(99);
+      sc.document = names.getCurrentIdentifier();
       assertEquals(names.getCurrentName(), "DOC-" + 100);
 
-      LengthsReader.Iterator lengths = index.getLengthsIterator();
-      lengths.moveTo(99);
+      LengthsReader.LengthsIterator lengths = index.getLengthsIterator();
+      lengths.setContext(sc);
+      lengths.syncTo(99);
+      sc.document = 99;
       assertEquals(lengths.getCurrentIdentifier(), 99);
       assertEquals(lengths.getCurrentLength(), 5);
       lengths.movePast(99);
+      sc.document = lengths.getCurrentIdentifier();
       assertEquals(lengths.getCurrentIdentifier(), 100);
       assertEquals(lengths.getCurrentLength(), 5);
 
       Node q1 = StructuredQuery.parse("#counts:sample:part=postings()");
       MovableCountIterator ci1 = (MovableCountIterator) index.getIterator(q1);
+      ci1.setContext(sc);
       assert ci1 != null;
-      ci1.moveTo(99);
+      ci1.syncTo(99);
+      sc.document = 99;
       assertEquals(ci1.currentCandidate(), 99);
       assertEquals(ci1.count(), 1);
       ci1.movePast(99);
+      sc.document = ci1.currentCandidate();
       assertEquals(ci1.currentCandidate(), 100);
       assertEquals(ci1.count(), 1);
 
       Node q2 = StructuredQuery.parse("#counts:@/101/:part=postings()");
       MovableCountIterator ci2 = (MovableCountIterator) index.getIterator(q2);
+      ci2.setContext(sc);
       assertEquals(ci2.currentCandidate(), 101);
+      sc.document = ci2.currentCandidate();
       assertEquals(ci2.count(), 1);
       ci2.movePast(101);
       assert (ci2.isDone());
       ci2.reset();
       assertEquals(ci2.currentCandidate(), 101);
+      sc.document = ci2.currentCandidate();
       assertEquals(ci2.count(), 1);
       ci2.movePast(101);
       assert (ci2.isDone());

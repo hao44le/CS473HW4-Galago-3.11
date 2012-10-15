@@ -17,17 +17,28 @@ public class OrderedWindowIterator extends ExtentConjunctionIterator {
   public OrderedWindowIterator(NodeParameters parameters, MovableExtentIterator[] iterators) throws IOException {
     super(parameters, iterators);
     this.width = (int) parameters.get("default", -1);
-    moveTo(0);
+    syncTo(0);
   }
 
   @Override
   public void loadExtents() {
-    int document = currentCandidate();
-    if (isDone() || this.extents.getDocument() == document) {
+    // get the document
+    int document = context.document;
+
+    // check if we're already there
+    if (this.extents.getDocument() == document) {
       return;
     }
+
+    // reset the extents
     extents.reset();
     extents.setDocument(document);
+
+    // if we're done - quit now 
+    //  -- (leaving extents object empty just in cast someone asks for them.)
+    if (isDone()) {
+      return;
+    }
 
     ExtentArrayIterator[] arrayIterators;
     arrayIterators = new ExtentArrayIterator[iterators.length];
@@ -39,7 +50,6 @@ public class OrderedWindowIterator extends ExtentConjunctionIterator {
       }
 
       arrayIterators[i] = new ExtentArrayIterator(((MovableExtentIterator) iterators[i]).extents());
-
       if (arrayIterators[i].isDone()) {
         // if this document does not have any extents we can not load any extents
         return;

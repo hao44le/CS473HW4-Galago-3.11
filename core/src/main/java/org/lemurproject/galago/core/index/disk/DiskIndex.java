@@ -209,8 +209,8 @@ public class DiskIndex implements Index {
 
   @Override
   public boolean containsDocumentIdentifier(int document) throws IOException {
-    NamesReader.Iterator ni = this.getNamesIterator();
-    ni.moveTo(document);
+    NamesReader.NamesIterator ni = this.getNamesIterator();
+    ni.syncTo(document);
     return ni.hasMatch(document);
   }
 
@@ -389,12 +389,12 @@ public class DiskIndex implements Index {
   }
 
   @Override
-  public LengthsReader.Iterator getLengthsIterator() throws IOException {
+  public LengthsReader.LengthsIterator getLengthsIterator() throws IOException {
     return lengthsReader.getLengthsIterator();
   }
 
   @Override
-  public NamesReader.Iterator getNamesIterator() throws IOException {
+  public NamesReader.NamesIterator getNamesIterator() throws IOException {
     return namesReader.getNamesIterator();
   }
 

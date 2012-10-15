@@ -31,6 +31,8 @@ import org.lemurproject.galago.core.learning.LearnQueryParameters;
 import org.lemurproject.galago.core.parse.Document;
 import org.lemurproject.galago.core.retrieval.Retrieval;
 import org.lemurproject.galago.core.retrieval.RetrievalFactory;
+import org.lemurproject.galago.core.retrieval.iterator.MovableCountIterator;
+import org.lemurproject.galago.core.retrieval.processing.ScoringContext;
 import org.lemurproject.galago.core.retrieval.query.Node;
 import org.lemurproject.galago.core.retrieval.query.StructuredQuery;
 import org.lemurproject.galago.tupleflow.FileOrderedReader;
@@ -79,7 +81,7 @@ public class App {
 
   static {
     //
-    appFunctions.put("chain-jobs", new ChainJobs());  
+    appFunctions.put("chain-jobs", new ChainJobs());
 
     // build functions
     appFunctions.put("build", new BuildIndex());
@@ -94,7 +96,7 @@ public class App {
     appFunctions.put("stemmer-conflation", new BuildStemmerConflation());
     appFunctions.put("link-indexes", new IndexLinker());
     appFunctions.put("build-topics", new TopicIndexBuilder());
-    appFunctions.put("build-pictures", new BuildPictureStore()); 
+    appFunctions.put("build-pictures", new BuildPictureStore());
     appFunctions.put("build-dates", new BuildWordDateIndex());
 
     // background functions
@@ -105,7 +107,7 @@ public class App {
     appFunctions.put("batch-search", new BatchSearch());
     appFunctions.put("search", new SearchFn());
 
-    // eval 
+    // eval
     appFunctions.put("eval", new Eval());
 
     // learning
@@ -119,10 +121,12 @@ public class App {
     appFunctions.put("dump-keyvalue", new DumpKeyValueFn()); // -- should be implemented in dump-index
     appFunctions.put("dump-modifier", new DumpModifierFn());
     appFunctions.put("dump-index-manifest", new DumpIndexManifestFn());
+    appFunctions.put("dump-term-stats", new DumpTermStatisticsFn());
 
     // corpus + index querying
     appFunctions.put("doc", new DocFn());
     appFunctions.put("doc-id", new DocIdFn());
+    appFunctions.put("doc-name", new DocNameFn());
     appFunctions.put("xcount", new XCountFn());
     appFunctions.put("doccount", new XDocCountFn());
 
@@ -190,7 +194,7 @@ public class App {
       runTupleFlowJob(job, p, output);
     }
   }
-    
+
   private static class ChainJobs extends AppFunction {
     @Override
     public String getHelpString() {
@@ -220,7 +224,7 @@ public class App {
               }
 	    }
 	} else if (jobs.isMap("jobs")) {
-	    output.printf("Not implemented yet. Sorry.\n");	    
+	    output.printf("Not implemented yet. Sorry.\n");
 	}
     }
 
@@ -262,7 +266,7 @@ public class App {
       assert r.getAvailableParts().containsKey("corpus") : "Index does not contain a corpus part.";
       Document document = r.getDocument(identifier, p);
       if (document != null) {
-	  output.println(document.toString());
+        output.println(document.toString());
       } else {
         output.println("Document " + identifier + " does not exist in index " + indexPath + ".");
       }
@@ -421,7 +425,9 @@ public class App {
       if (KeyListReader.class.isAssignableFrom(reader.getClass())) {
         while (!iterator.isDone()) {
           ValueIterator vIter = iterator.getValueIterator();
+          vIter.setContext(new ScoringContext());
           while (!vIter.isDone()) {
+            vIter.getContext().document = vIter.currentCandidate();
             output.println(vIter.getEntry());
             vIter.movePast(vIter.currentCandidate());
           }
@@ -510,6 +516,45 @@ public class App {
       String indexPath = p.getString("indexPath");
       run(new String[]{"", indexPath}, output);
     }
+  }
+
+  private static class DumpTermStatisticsFn extends AppFunction {
+
+      @Override
+      public String getHelpString() {
+        return "galago dump-term-stats <index-part> \n\n"
+                + "  Dumps <term> <frequency> <document count> statsistics from the" +
+                " the specified index part.\n";
+      }
+
+      @Override
+      public void run(String[] args, PrintStream output)
+              throws Exception {
+          IndexPartReader reader = DiskIndex.openIndexPart(args[1]);
+          KeyIterator iterator = reader.getIterator();
+          while (!iterator.isDone()) {
+              MovableCountIterator mci = (MovableCountIterator) iterator.getValueIterator();
+              long frequency = 0;
+              long documentCount = 0;
+              while (!mci.isDone()) {
+                  if (mci.hasMatch(mci.currentCandidate())) {
+                      frequency += mci.count();
+                      documentCount++;
+                  }
+                  mci.movePast(mci.currentCandidate());
+                }
+              output.printf("%s\t%d\t%d\n", iterator.getKeyString(), frequency, documentCount);
+              iterator.nextKey();
+          }
+          reader.close();
+      }
+
+      @Override
+      public void run(Parameters p, PrintStream output) throws Exception {
+        String indexPath = p.getString("indexPath");
+        run(new String[]{"", indexPath}, output);
+      }
+
   }
 
   private static class DumpKeyValueFn extends AppFunction {
@@ -608,7 +653,7 @@ public class App {
       StringBuilder defaultOutput = new StringBuilder(
               "Type 'galago help <command>' to get more help about any command.\n\n"
               + "Popular commands:\n"
-              + "   build-fast\n"
+              + "   build\n"
               + "   search\n"
               + "   batch-search\n\n"
               + "All commands:\n");
@@ -618,7 +663,7 @@ public class App {
         defaultOutput.append("   ").append(cmd).append("\n");
       }
 
-      // galago help 
+      // galago help
       if (args.length == 0) {
         output.println(defaultOutput);
         output.println();
@@ -894,6 +939,7 @@ public class App {
     int hash = (int) p.get("distrib", 0);
     if (hash > 0) {
       job.properties.put("hashCount", Integer.toString(hash));
+      System.out.println(job.properties.get("hashCount"));
     }
 
     ErrorStore store = new ErrorStore();

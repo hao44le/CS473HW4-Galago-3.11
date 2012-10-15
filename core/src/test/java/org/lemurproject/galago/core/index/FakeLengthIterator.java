@@ -15,7 +15,7 @@ import org.lemurproject.galago.core.retrieval.query.AnnotatedNode;
  *
  * @author marc
  */
-public class FakeLengthIterator implements LengthsReader.Iterator {
+public class FakeLengthIterator implements LengthsReader.LengthsIterator {
 
   private int[] ids;
   private int[] lengths;
@@ -55,11 +55,11 @@ public class FakeLengthIterator implements LengthsReader.Iterator {
 
   @Override
   public void movePast(int identifier) throws IOException {
-    moveTo(identifier + 1);
+    syncTo(identifier + 1);
   }
 
   @Override
-  public void moveTo(int identifier) throws IOException {
+  public void syncTo(int identifier) throws IOException {
     while (!isDone() && ids[position] < identifier) {
       position++;
     }

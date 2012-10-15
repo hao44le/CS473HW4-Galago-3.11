@@ -20,16 +20,27 @@ public class UnorderedWindowIterator extends ExtentConjunctionIterator {
     super(parameters, evIterators);
     this.width = (int) parameters.get("default", -1);
     this.overlap = parameters.get("overlap", false);
-    moveTo(0);
+    syncTo(0);
   }
 
   public void loadExtents() {
-    int document = currentCandidate();
-    if (isDone() || this.extents.getDocument() == document) {
+    // get the document
+    int document = context.document;
+
+    // check if we're already there
+    if (this.extents.getDocument() == document) {
       return;
     }
+
+    // reset the extents
     extents.reset();
     extents.setDocument(document);
+
+    // if we're done - quit now 
+    //  -- (leaving extents object empty just in cast someone asks for them.)
+    if (isDone()) {
+      return;
+    }
 
     ExtentArrayIterator[] arrayIterators;
     int maximumPosition = 0;

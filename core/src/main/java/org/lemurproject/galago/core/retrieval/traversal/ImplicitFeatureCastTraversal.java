@@ -51,10 +51,18 @@ public class ImplicitFeatureCastTraversal extends Traversal {
     if (child.getOperator().equals("extents")) {
       child.setOperator("counts");
     }
-
+    
     ArrayList<Node> data = new ArrayList<Node>();
     data.add(child);
     String scorerType = globals.get("scorer", "dirichlet");
+    if (child.getOperator().equals("mincount")) { //experimental
+      scorerType = scorerType + "-est";
+      for (Node grandchild : child.getInternalNodes()) {
+        if (child.getOperator().equals("extents")) {
+          child.setOperator("counts");
+        }
+      }
+    }
     Node smoothed = new Node("feature", scorerType, data, child.getPosition());
     // TODO - add in smoothing globals, modifiers
 
@@ -126,6 +134,7 @@ public class ImplicitFeatureCastTraversal extends Traversal {
   }
 
   // Put node modification in "before", since we're not replacing the node
+  @Override
   public void beforeNode(Node node) throws Exception {
     // Indicates we want "whole doc" matching
     if (node.getOperator().equals("intersect")) {
@@ -134,6 +143,7 @@ public class ImplicitFeatureCastTraversal extends Traversal {
     }
   }
 
+  @Override
   public Node afterNode(Node node) throws Exception {
     // This moves the interior nodes of a field comparison operator into its
     // globals, which is the appropriate syntax.
