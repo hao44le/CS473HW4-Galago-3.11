@@ -1,20 +1,12 @@
 // BSD License (http://lemurproject.org/galago-license)
 package org.lemurproject.galago.core.parse;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Pattern;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamConstants;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.util.StreamReaderDelegate;
 import org.lemurproject.galago.core.types.DocumentSplit;
+import org.lemurproject.galago.tupleflow.Parameters;
 
 class MBTEIPageEntityLinker extends MBTEIParserBase {
     LinkedList<Document> entitiesInScope;
@@ -26,8 +18,8 @@ class MBTEIPageEntityLinker extends MBTEIParserBase {
     LinkedList<Document> finishedDocumentQueue;
     Pattern pageBreakTag = Pattern.compile("pb");
 
-    public MBTEIPageEntityLinker(DocumentSplit split, InputStream is) {
-	super(split, is);
+    public MBTEIPageEntityLinker(DocumentSplit split, Parameters p) {
+	super(split, p);
 	S0();
 	entitiesInScope = new LinkedList<Document>();
 	bookLinks = new Document();

@@ -60,9 +60,9 @@ public interface Index {
 
   public Map<String,Document> getDocuments(List<String> document, Parameters p) throws IOException;
   
-  public LengthsReader.Iterator getLengthsIterator() throws IOException;
+  public LengthsReader.LengthsIterator getLengthsIterator() throws IOException;
 
-  public NamesReader.Iterator getNamesIterator() throws IOException;
+  public NamesReader.NamesIterator getNamesIterator() throws IOException;
 
   public Parameters getManifest();
 

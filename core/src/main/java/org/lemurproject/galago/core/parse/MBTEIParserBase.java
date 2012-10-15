@@ -1,9 +1,9 @@
 // BSD License (http://lemurproject.org/galago-license)
 package org.lemurproject.galago.core.parse;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -13,6 +13,7 @@ import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.util.StreamReaderDelegate;
 import org.lemurproject.galago.core.types.DocumentSplit;
+import org.lemurproject.galago.tupleflow.Parameters;
 import org.lemurproject.galago.tupleflow.Utility;
 
 /**
@@ -40,7 +41,7 @@ import org.lemurproject.galago.tupleflow.Utility;
  *
  * @author irmarc
  */
-abstract class MBTEIParserBase implements DocumentStreamParser {
+abstract class MBTEIParserBase extends DocumentStreamParser {
     // For XML stream processing
     protected StreamReaderDelegate reader;
     protected XMLInputFactory factory;
@@ -70,7 +71,8 @@ abstract class MBTEIParserBase implements DocumentStreamParser {
     protected Document parsedDocument;
     protected StringBuilder buffer;
  
-    public MBTEIParserBase(DocumentSplit split, InputStream is) {
+    public MBTEIParserBase(DocumentSplit split, Parameters p) {
+      super(split, p);
 	try {
 	    this.split = split;
 	    System.out.printf("Processing split: %s\n", split.fileName);
@@ -78,6 +80,7 @@ abstract class MBTEIParserBase implements DocumentStreamParser {
 	    endElementActions = new LinkedList<Action>();
 	    factory = XMLInputFactory.newInstance();
 	    factory.setProperty(XMLInputFactory.IS_COALESCING, true);
+            BufferedInputStream is = DocumentStreamParser.getBufferedInputStream(split);
 	    reader = new StreamReaderDelegate(factory.createXMLStreamReader(is));
 	    stopwords = 
 		Utility.readStreamToStringSet(getClass().getResourceAsStream("/stopwords/inquery"));	    

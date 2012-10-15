@@ -1,24 +1,18 @@
 // BSD License (http://lemurproject.org/galago-license)
 package org.lemurproject.galago.core.parse;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamConstants;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.util.StreamReaderDelegate;
 import org.lemurproject.galago.core.types.DocumentSplit;
+import org.lemurproject.galago.tupleflow.Parameters;
 
 class MBTEIWordDateParser extends MBTEIParserBase {
     Pattern dateTag = Pattern.compile("date");
     
     Document wholeDocument;
     
-    public MBTEIWordDateParser(DocumentSplit split, InputStream is) {
-	super(split, is);
+    public MBTEIWordDateParser(DocumentSplit split, Parameters p) {
+	super(split, p);
 	wholeDocument = new Document();
 	wholeDocument.terms = new ArrayList<String>();
 	S0();

@@ -136,7 +136,7 @@ public class AdjacencyListReader extends KeyListReader {
     }
 
     @Override
-    public void moveTo(int identifier) throws IOException {
+    public void syncTo(int identifier) throws IOException {
       while (!isDone() && identifier > currentIdentifier) {
         read();
       }
@@ -165,9 +165,9 @@ public class AdjacencyListReader extends KeyListReader {
 
       builder.append(getKeyString());
       builder.append(",");
-      builder.append(currentIdentifier);
+      builder.append(currentCandidate());
       builder.append(",");
-      builder.append(currentScore);
+      builder.append(score());
 
       return builder.toString();
     }

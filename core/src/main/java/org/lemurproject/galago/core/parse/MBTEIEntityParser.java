@@ -2,13 +2,12 @@
 package org.lemurproject.galago.core.parse;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 import javax.xml.stream.XMLStreamConstants;
 import org.lemurproject.galago.core.types.DocumentSplit;
-import org.lemurproject.galago.tupleflow.Utility;
+import org.lemurproject.galago.tupleflow.Parameters;
 
 // Fundamentally operates differently than the book and page parsers,
 // so it is subclassed higher up the hierarchy
@@ -46,8 +45,8 @@ class MBTEIEntityParser extends MBTEIParserBase {
     int pageNumber = 0;
     int pagePosition = 0;
 
-    public MBTEIEntityParser(DocumentSplit split, InputStream is) {
-	super(split, is);
+    public MBTEIEntityParser(DocumentSplit split, Parameters p) {
+	super(split, p);
 	openContexts = new LinkedList<Context>();
 	slidingWindow = new LinkedList<String>();
 	S0();

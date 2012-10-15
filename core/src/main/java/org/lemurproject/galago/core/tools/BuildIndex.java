@@ -658,7 +658,7 @@ public class BuildIndex extends AppFunction {
 
     Job job = new Job();
 
-    String indexPath = new File(buildParameters.getString("indexPath")).getAbsolutePath(); // fail if no path.
+    String indexPath = new File(buildParameters.getString("indexPath")).getAbsolutePath();
     // ensure the index folder exists
     File buildManifest = new File(indexPath, "buildManifest.json");
     Utility.makeParentDirectories(buildManifest);
@@ -670,6 +670,13 @@ public class BuildIndex extends AppFunction {
 
     Parameters splitParameters = buildParameters.get("parser", new Parameters()).clone();
     splitParameters.set("corpusPieces", buildParameters.get("distrib", 10));
+    if(buildParameters.isMap("parser")){
+      splitParameters.set("parser", buildParameters.getMap("parser"));
+    }
+
+    if(buildParameters.isString("filetype")){
+      splitParameters.set("filetype", buildParameters.getString("filetype"));
+    }
     job.add(BuildStageTemplates.getSplitStage(inputPaths, DocumentSource.class, new DocumentSplit.FileIdOrder(), splitParameters));
 
     job.add(getParsePostingsStage(buildParameters));
@@ -795,7 +802,7 @@ public class BuildIndex extends AppFunction {
 
   @Override
   public void run(Parameters p, PrintStream output) throws Exception {
-    // build-fast index input
+    // build index input
     if (!p.isString("indexPath") && !p.isList("inputPath")) {
       output.println(getHelpString());
       return;

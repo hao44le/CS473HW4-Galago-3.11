@@ -23,6 +23,7 @@ import org.lemurproject.galago.core.retrieval.query.Node;
 import org.lemurproject.galago.core.retrieval.query.NodeType;
 import org.lemurproject.galago.core.retrieval.iterator.MovableCountIterator;
 import org.lemurproject.galago.core.retrieval.iterator.MovableIterator;
+import org.lemurproject.galago.core.retrieval.processing.ScoringContext;
 import org.lemurproject.galago.core.retrieval.query.AnnotatedNode;
 import org.lemurproject.galago.tupleflow.FakeParameters;
 import org.lemurproject.galago.tupleflow.Parameters;
@@ -85,8 +86,10 @@ public class MemoryCountIndex implements MemoryIndexPart, AggregateReader {
     if (!postings.containsKey(key)) {
       PostingList postingList = new PostingList(key);
       MovableCountIterator mi = (MovableCountIterator) iterator;
+      ScoringContext sc = mi.getContext();
       while (!mi.isDone()) {
         int document = mi.currentCandidate();
+        sc.document = document;
         int count = mi.count();
         postingList.add(document, count);
         mi.movePast(document);
@@ -209,11 +212,13 @@ public class MemoryCountIndex implements MemoryIndexPart, AggregateReader {
 
     KIterator kiterator = new KIterator();
     CountsIterator viterator;
+    ScoringContext sc = new ScoringContext();
     while (!kiterator.isDone()) {
       viterator = (CountsIterator) kiterator.getValueIterator();
       writer.processWord(kiterator.getKey());
-
+      viterator.setContext(sc);
       while (!viterator.isDone()) {
+        sc.document = viterator.currentCandidate();
         writer.processDocument(viterator.currentCandidate());
         writer.processTuple(viterator.count());
         viterator.movePast(viterator.currentCandidate());
@@ -403,7 +408,10 @@ public class MemoryCountIndex implements MemoryIndexPart, AggregateReader {
 
     @Override
     public int count() {
-      return currCount;
+      if (context.document == this.currDocument) {
+        return currCount;
+      }
+      return 0;
     }
 
     @Override
@@ -419,6 +427,11 @@ public class MemoryCountIndex implements MemoryIndexPart, AggregateReader {
     @Override
     public int currentCandidate() {
       return currDocument;
+    }
+
+    @Override
+    public byte[] key() {
+      return Utility.fromString("MemCI");
     }
 
     @Override
@@ -447,7 +460,7 @@ public class MemoryCountIndex implements MemoryIndexPart, AggregateReader {
     }
 
     @Override
-    public void moveTo(int identifier) throws IOException {
+    public void syncTo(int identifier) throws IOException {
       // TODO: need to implement skip lists
 
       while (!isDone() && (currDocument < identifier)) {

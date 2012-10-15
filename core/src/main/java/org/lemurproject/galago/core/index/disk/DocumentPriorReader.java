@@ -30,12 +30,14 @@ public class DocumentPriorReader extends KeyValueReader {
 
   public DocumentPriorReader(String filename) throws FileNotFoundException, IOException {
     super(filename);
-    def = this.getManifest().getDouble("minScore"); // this must exist
+    this.manifest = this.reader.getManifest();
+    def = this.getManifest().get("default", Math.log(0.0000000001)); // this must exist
   }
 
   public DocumentPriorReader(BTreeReader r) {
     super(r);
     this.manifest = this.reader.getManifest();
+    def = this.getManifest().get("default", Math.log(0.0000000001)); // this must exist
   }
 
   public double getPrior(int document) throws IOException {
@@ -116,17 +118,15 @@ public class DocumentPriorReader extends KeyValueReader {
   public class ValueIterator extends KeyToListIterator implements MovableScoreIterator {
 
     double minScore;
-    boolean nonmatching;
 
     public ValueIterator(KeyIterator it, Node node) {
       super(it);
-      this.minScore = node.getNodeParameters().get("minScore", Math.log(0.0000000001)); // same as indri
-      this.nonmatching = node.getNodeParameters().get("nonmatching", true); // note that this will fail for conjunctions
+      this.minScore = node.getNodeParameters().get("defaultPrior", def); // same as indri
     }
 
     public ValueIterator(KeyIterator it) {
       super(it);
-      this.minScore = Math.log(0.0000000001); // same as indri
+      this.minScore = def; // same as indri
     }
 
     @Override
@@ -145,64 +145,31 @@ public class DocumentPriorReader extends KeyValueReader {
     }
 
     @Override
-    public double score() {
-      try {
-        // mode to or past the desired document
-        this.iterator.findKey(Utility.fromInt(context.document));
+    public boolean hasMatch(int identifier) {
+      return true;
+    }
 
-        if (Utility.toInt(this.iterator.getKey()) == context.document) {
+    @Override
+    public double score() {
+      System.out.printf("Getting prior score for %d (current=%d): ",
+              context.document, currentCandidate());
+      try {
+        if (currentCandidate() == context.document) {
           byte[] valueBytes = iterator.getValueBytes();
           if ((valueBytes == null) || (valueBytes.length == 0)) {
+            //System.out.printf("%f (0, minScore)\n", minScore);
             return minScore;
           } else {
+            //System.out.printf("%f (1, value)\n", Utility.toDouble(valueBytes));
             return Utility.toDouble(valueBytes);
           }
         } else {
+          //System.out.printf("%f (2, minScore)\n", minScore);
           return minScore;
         }
       } catch (IOException ex) {
         Logger.getLogger(DocumentPriorReader.class.getName()).log(Level.SEVERE, null, ex);
         throw new RuntimeException(ex);
-      }
-    }
-
-    @Override
-    public boolean hasMatch(int identifier) {
-      if (nonmatching) {
-        return false;
-      }
-      return (!this.isDone()
-              && identifier == this.currentCandidate()
-              && this.score() >= this.minScore);
-    }
-
-    @Override
-    public void moveTo(int identifier) throws IOException {
-      if (nonmatching) {
-        return;
-      }
-      iterator.skipToKey(Utility.fromInt(identifier));
-    }
-
-    @Override
-    public int currentCandidate() {
-      if (nonmatching) {
-        return Integer.MAX_VALUE;
-      } else {
-        try {
-          return Utility.toInt(this.iterator.getKey());
-        } catch (IOException ex) {
-          throw new RuntimeException("Prior Reader - failed to convert index.getKeyBytes to an integer.");
-        }
-      }
-    }
-
-    @Override
-    public boolean isDone() {
-      if (nonmatching) {
-        return true;
-      } else {
-        return iterator.isDone();
       }
     }
 
@@ -229,7 +196,7 @@ public class DocumentPriorReader extends KeyValueReader {
     @Override
     public AnnotatedNode getAnnotatedNode() throws IOException {
       String type = "score";
-      String className = this.getClass().getSimpleName();
+      String className = DocumentPriorReader.class.getSimpleName();
       String parameters = "";
       int document = currentCandidate();
       boolean atCandidate = hasMatch(this.context.document);
