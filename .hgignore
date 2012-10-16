@@ -1,0 +1,9 @@
+# going to use glob ignore
+syntax: glob
+
+*.class
+*/types/*
+*/target/*
+*.iml
+*.prj
+./ECIR2013
