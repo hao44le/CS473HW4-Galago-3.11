@@ -26,7 +26,6 @@ public class RankedPassageModel extends ProcessingModel {
 
   LocalRetrieval retrieval;
   Index index;
-  List<Integer> whitelist;
 
   public RankedPassageModel(LocalRetrieval lr) {
     this.retrieval = lr;
@@ -34,90 +33,20 @@ public class RankedPassageModel extends ProcessingModel {
   }
 
   @Override
-  public void defineWorkingSet(List<Integer> docs) {
-    Collections.sort(docs);
-    whitelist = docs;
-  }
-
-  @Override
   public ScoredDocument[] execute(Node queryTree, Parameters queryParams) throws Exception {
-    if (whitelist == null) {
-      return executeWholeCollection(queryTree, queryParams);
-    } else {
-      return executeWorkingSet(queryTree, queryParams);
-    }
-  }
-
-  public ScoredDocument[] executeWorkingSet(Node queryTree, Parameters queryParams)
-          throws Exception {
-
     PassageScoringContext context = new PassageScoringContext();
 
     // Following operations are all just setup
     int requested = (int) queryParams.get("requested", 1000);
     int passageSize = (int) queryParams.getLong("passageSize");
     int passageShift = (int) queryParams.getLong("passageShift");
-    MovableScoreIterator iterator = (MovableScoreIterator) retrieval.createIterator(queryParams, queryTree, context);
-    MovableLengthsIterator documentLengths = (MovableLengthsIterator) retrieval.createIterator(new Parameters(), StructuredQuery.parse("#lengths:part=lengths()"), context);
-    PriorityQueue<ScoredPassage> queue = new PriorityQueue<ScoredPassage>(requested);
-
-    // now there should be an iterator at the root of this tree
-    for (int i = 0; i < whitelist.size(); i++) {
-      int document = whitelist.get(i);
-      
-      // This context is shared among all scorers
-      context.document = document;
-      documentLengths.syncTo(document);
-      int length = documentLengths.getCurrentLength();
-
-      // set the parameters for the first passage
-      context.begin = 0;
-      context.end = Math.min(passageSize, length);
-
-      
-      // ensure we are at the document we wish to score
-      // -- this function will move ALL iterators, 
-      //     not just the ones that do not have all candidates
-      iterator.syncTo(document);
-
-      // Keep iterating over the same doc, but incrementing the begin/end fields of the
-      // context until the next one
-      boolean lastIteration = false;
-      while (context.begin < length && !lastIteration) {
-        if (context.end >= length) lastIteration = true;
-
-        if (iterator.hasMatch(document)) {
-          double score = iterator.score();
-          if (requested < 0 || queue.size() <= requested || queue.peek().score < score) {
-            ScoredPassage scored = new ScoredPassage(document, score, context.begin, context.end);
-            queue.add(scored);
-            if (requested > 0 && queue.size() > requested) {
-              queue.poll();
-            }
-          }
-        }
-
-        // Move the window forward
-        context.begin += passageShift;
-        // end must be bigger or equal to the begin, and less than the length of the document
-        context.end = Math.max(context.begin, Math.min(passageSize+context.begin, length));
-      }
-    }
-    return toReversedArray(queue);
-
-  }
-
-  public ScoredDocument[] executeWholeCollection(Node queryTree, Parameters queryParams)
-          throws Exception {
-    PassageScoringContext context = new PassageScoringContext();
-
-
-    // Following operations are all just setup
-    int requested = (int) queryParams.get("requested", 1000);
-    int passageSize = (int) queryParams.getLong("passageSize");
-    int passageShift = (int) queryParams.getLong("passageShift");
-    MovableScoreIterator iterator = (MovableScoreIterator) retrieval.createIterator(queryParams, queryTree, context);
-    MovableLengthsIterator documentLengths = (MovableLengthsIterator) retrieval.createIterator(new Parameters(), StructuredQuery.parse("#lengths:part=lengths()"), context);
+    MovableScoreIterator iterator = 
+            (MovableScoreIterator) retrieval.createIterator(queryParams, 
+                      queryTree, 
+                      context);
+    MovableLengthsIterator documentLengths = 
+            (MovableLengthsIterator) retrieval.createIterator(new Parameters(), 
+            StructuredQuery.parse("#lengths:part=lengths()"), context);
     
     PriorityQueue<ScoredPassage> queue = new PriorityQueue<ScoredPassage>(requested);
 
