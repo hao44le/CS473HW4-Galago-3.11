@@ -39,6 +39,7 @@ public class CoordinateAscentLearner extends Learner {
   protected double minStepSize;
   protected double maxStepRatio;
   protected double stepScale;
+  protected boolean limitRange;
 
   public CoordinateAscentLearner(Parameters p, Retrieval r) throws Exception {
     super(p, r);
@@ -48,6 +49,8 @@ public class CoordinateAscentLearner extends Learner {
     this.maxIterations = (int) p.get("maxIterations", 5);
     this.minStepSizes = new HashMap();
     this.minStepSize = p.get("minStepSize", 0.02);
+    this.limitRange = p.get("limitRange", false);
+
     Parameters specialMinStepSizes = new Parameters();
     if (p.isMap("specialMinStepSize")) {
       specialMinStepSizes = p.getMap("specialMinStepSize");
@@ -78,6 +81,7 @@ public class CoordinateAscentLearner extends Learner {
 
 
         Thread t = new Thread() {
+
           @Override
           public void run() {
             try {
@@ -158,17 +162,17 @@ public class CoordinateAscentLearner extends Learner {
 
       for (RetrievalModelInstance inst : learntParams) {
         double score = Double.parseDouble(inst.getAnnotation("score"));
-        if(bestScore < score){
+        if (bestScore < score) {
           best = inst;
           bestScore = score;
         }
       }
-      
+
       best.setAnnotation("name", name + "-best");
-      
+
       outputPrintStream.println(best.toString());
       outputPrintStream.flush();
-      
+
       return best;
     }
   }
@@ -189,6 +193,9 @@ public class CoordinateAscentLearner extends Learner {
 
       for (int c = 0; c < optimizationOrder.size(); c++) { // outer iteration
         String coord = optimizationOrder.get(c);
+        double upperLimit = parameterSettings.getMax(coord);
+        double lowerLimit = parameterSettings.getMin(coord);
+
         outputTraceStream.println(String.format("Iteration (%d of %d). Step (%d of %d). Starting to optimize coordinate (%s)...", iters, this.maxIterations, c + 1, optimizationOrder.size(), coord));
         double currParamValue = parameterSettings.get(coord); // Keep around the current parameter value
         // Take a step to the right 
@@ -201,20 +208,36 @@ public class CoordinateAscentLearner extends Learner {
         double rightBest = best;
         double rightStep = 0;
         boolean improving = true;
+        boolean atLimit = false;
 
         while (improving) {
-          double curr = parameterSettings.get(coord);
-          parameterSettings.unsafeSet(coord, curr + step);
+          parameterSettings.unsafeSet(coord, currParamValue + step);
           double evaluation = evaluate(parameterSettings);
-          outputTraceStream.println(String.format("Coordinate (%s) ++%f... Metric: %f.", coord, step, evaluation));
+          outputTraceStream.println(String.format("Coordinate (%s) (%f ++%f)... Metric: %f.", coord, currParamValue, step, evaluation));
+
           // while we are improving, or equal to the current best - 
           if (evaluation > rightBest || evaluation == best) {
+            // record the step as the current 'best'
             rightBest = evaluation;
-            rightStep += step;
+            rightStep = step;
+
+            // scale the step size up
             step *= stepScale;
+
             // avoid REALLY BIG steps
             if (step > this.MAX_STEP) {
               improving = false;
+            }
+
+            // avoid exceeding upper bound
+            if (limitRange && (currParamValue + step > upperLimit)) {
+              if (atLimit || currParamValue == upperLimit) {
+                improving = false;
+              } else {
+                atLimit = true;
+                step = upperLimit - currParamValue;
+                outputTraceStream.println("Hit limit : upper limit: " + step);
+              }
             }
           } else {
             improving = false;
@@ -234,18 +257,31 @@ public class CoordinateAscentLearner extends Learner {
         double leftBest = best;
         double leftStep = 0;
         improving = true;
+        atLimit = false;
+
         while (improving) {
-          double curr = parameterSettings.get(coord);
-          parameterSettings.unsafeSet(coord, curr - step);
+          parameterSettings.unsafeSet(coord, currParamValue - step);
           double evaluation = evaluate(parameterSettings);
-          outputTraceStream.println(String.format("Coordinate (%s) --%f... Metric: %f.", coord, step, evaluation));
+          outputTraceStream.println(String.format("Coordinate (%s) (%f --%f)... Metric: %f.", coord, currParamValue, step, evaluation));
           if (evaluation > leftBest || evaluation == best) {
             leftBest = evaluation;
-            leftStep += step;
+            leftStep = step;
             step *= stepScale;
+
             // avoid REALLY BIG steps
             if (step > this.MAX_STEP) {
               improving = false;
+            }
+
+            // avoid exceeding lower bound
+            if (limitRange && (currParamValue - step < lowerLimit)) {
+              if (atLimit || currParamValue == lowerLimit) {
+                improving = false;
+              } else {
+                atLimit = true;
+                step = currParamValue - lowerLimit;
+                outputTraceStream.println("Hit lower limit : new step: " + step);
+              }
             }
           } else {
             improving = false;
@@ -258,30 +294,34 @@ public class CoordinateAscentLearner extends Learner {
         // pick a direction to move this parameter
         if ((rightBest > leftBest && rightBest > best) || rightBest > best) {
           optimized = true;
-          double curr = parameterSettings.get(coord);
-          parameterSettings.unsafeSet(coord, curr + rightStep);
+          parameterSettings.unsafeSet(coord, currParamValue + rightStep);
           best = rightBest;
-          outputTraceStream.println(String.format("Finished optimizing coordinate (%s). ++%f. Metric: %f", coord, rightStep, best));
+          outputTraceStream.println(String.format("Finished optimizing coordinate (%s). (%f ++%f). Metric: %f", coord, currParamValue, rightStep, best));
+          outputTraceStream.flush();
 
         } else if ((leftBest > rightBest && leftBest > best) || leftBest > best) {
           optimized = true;
-          double curr = parameterSettings.get(coord);
-          parameterSettings.unsafeSet(coord, curr - leftStep);
+          parameterSettings.unsafeSet(coord, currParamValue - leftStep);
           best = leftBest;
-          outputTraceStream.println(String.format("Finished optimizing coordinate (%s). --%f. Metric: %f", coord, leftStep, best));
+          outputTraceStream.println(String.format("Finished optimizing coordinate (%s). (%f --%f). Metric: %f", coord, currParamValue, leftStep, best));
+          outputTraceStream.flush();
 
         } else {
-          outputTraceStream.println(String.format("Finished optimizing coordinate (%s). No Change. Best: %f", coord, best));
+          outputTraceStream.println(String.format("Finished optimizing coordinate (%s). No Change (%f). Best: %f", coord, currParamValue, best));
+          outputTraceStream.flush();
         }
 
         parameterSettings.normalize();
         outputTraceStream.println(String.format("Current source weights: %s", parameterSettings.toString()));
+        outputTraceStream.flush();
       }
       outputTraceStream.println(String.format("Finished coordinate sweep."));
+      outputTraceStream.flush();
     }
 
     outputTraceStream.println(String.format("No changes in the current round or maximum number of iterations reached... Done optimizing."));
     outputTraceStream.println(String.format("Best metric achieved: %s", best));
+    outputTraceStream.flush();
     return parameterSettings;
   }
 }
