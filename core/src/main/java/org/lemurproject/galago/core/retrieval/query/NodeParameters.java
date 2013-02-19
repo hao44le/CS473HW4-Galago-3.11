@@ -7,12 +7,13 @@ import gnu.trove.map.hash.TObjectByteHashMap;
 import gnu.trove.map.hash.TObjectDoubleHashMap;
 import gnu.trove.map.hash.TObjectLongHashMap;
 import java.io.Serializable;
+import java.math.BigDecimal;
+import java.math.MathContext;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Set;
 import org.lemurproject.galago.tupleflow.Parameters.Type;
 
@@ -179,7 +180,6 @@ public class NodeParameters implements Serializable {
   }
 
   public String getAsSimpleString(String key) {
-    // assert keyMapping.containsKey(key) : "Key " + key + " not found in NodeParameters.";
     if (keyMapping.containsKey(key)) {
       switch (keyMapping.get(key)) {
         case BOOLEAN:
@@ -187,23 +187,9 @@ public class NodeParameters implements Serializable {
         case LONG:
           return Long.toString(longMap.get(key));
         case DOUBLE:
-          //String doubleString = Double.toString(doubleMap.get(key)); 
-          DecimalFormat formatter = new DecimalFormat("###.#####");
-          String doubleString = formatter.format(doubleMap.get(key));
-          int firstNonZeroIndex = -1;
-          for (int i = 0; i < doubleString.length(); i++) {
-            if (doubleString.charAt(i) != '0' && doubleString.charAt(i) != '.') {
-              firstNonZeroIndex = i;
-              break;
-            }
-          }
-          if (firstNonZeroIndex != -1) {
-            if (doubleString.length() >= 5) {
-              firstNonZeroIndex = firstNonZeroIndex >= 4 ? firstNonZeroIndex : 4;
-              doubleString = doubleString.substring(0, firstNonZeroIndex + 1);
-            }
-          }
-          return doubleString;
+          BigDecimal bd = new BigDecimal(doubleMap.get(key));
+          bd = bd.round(new MathContext(3));
+          return bd.toString();
         case STRING:
           return stringMap.get(key);
       }
@@ -280,7 +266,7 @@ public class NodeParameters implements Serializable {
     return sb.toString();
   }
 
-  public String toSimpleString(HashSet<String> ignoreParams, String operator) {
+  public String toSimpleString(Set<String> ignoreParams, String operator) {
     StringBuilder sb = new StringBuilder();
 
     if (keyMapping.containsKey("default")) {
@@ -305,7 +291,7 @@ public class NodeParameters implements Serializable {
         key = escapeAsNecessary(key, false);
         sb.append(":").append(key).append("=").append(value);
       } else if (!key.equals("default") && !ignoreParams.contains(key)) {
-        if (!key.matches("-?[0-9]+")) { //key is a number
+        if (!key.matches("-?[0-9]+")) { //key is an integer
           String value = getAsSimpleString(key);
           value = escapeAsNecessary(value, keyMapping.get(key) == Type.STRING); //double value
           key = escapeAsNecessary(key, false);
@@ -322,6 +308,7 @@ public class NodeParameters implements Serializable {
     ArrayList<String> keys = new ArrayList(keyMapping.keySet());
     //Collections.sort(keys);
     Collections.sort(keys, new Comparator<String>() {
+
       public int compare(String s1, String s2) {
         if (!s1.matches("-?[0-9]+") || !s2.matches("-?[0-9]+")) {
           return s1.compareTo(s2);
