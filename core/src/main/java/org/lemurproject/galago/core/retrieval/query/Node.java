@@ -4,10 +4,12 @@ package org.lemurproject.galago.core.retrieval.query;
 import java.io.Serializable;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 /**
  * <p>Node represents a single node in a query parse tree.</p>
@@ -17,9 +19,21 @@ import java.util.List;
  * StructuredQuery.walk. Once the query is in the proper form, the query is
  * converted into a tree of iterators that can be evaluated.</p>
  *
- * @author trevor
+ * @author trevor, sjh
  */
 public class Node implements Serializable {
+
+  private static final Set<String> defaultOmissionSet;
+
+  static {
+    defaultOmissionSet = new HashSet();
+    defaultOmissionSet.add("feature");
+    defaultOmissionSet.add("lengths");
+    defaultOmissionSet.add("passagelengths");
+    defaultOmissionSet.add("passagefilter");
+    defaultOmissionSet.add("part");
+  }
+  
   /// The query operator represented by this node, like "combine", "weight", "syn", etc.
 
   private String operator;
@@ -228,20 +242,20 @@ public class Node implements Serializable {
 
     return builder.toString();
   }
-
+  
   public String toSimplePrettyString() {
-    return toSimplePrettyString("", new HashSet<String>(), "");
+    return toSimplePrettyString("", defaultOmissionSet, "");
   }
 
-  public String toSimplePrettyString(HashSet<String> ignoreParams) {
+  public String toSimplePrettyString(Set<String> ignoreParams) {
     return toSimplePrettyString("", ignoreParams, "");
   }
 
-  public String toSimplePrettyString(String indent, HashSet<String> ignoreParams) {
+  public String toSimplePrettyString(String indent, Set<String> ignoreParams) {
     return toSimplePrettyString(indent, ignoreParams, "");
   }
 
-  public String toSimplePrettyString(String indent, HashSet<String> ignoreParams, String addOnString) {
+  public String toSimplePrettyString(String indent, Set<String> ignoreParams, String addOnString) {
     StringBuilder builder = new StringBuilder();
 
     if (ignoreParams.contains(operator)) {
