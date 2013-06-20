@@ -1,0 +1,9 @@
+package org.lemurproject.galago.core.types;
+
+type DocumentUrl {
+    String identifier;
+    String url;
+    
+    order: +url;
+    order: +identifier;
+}
