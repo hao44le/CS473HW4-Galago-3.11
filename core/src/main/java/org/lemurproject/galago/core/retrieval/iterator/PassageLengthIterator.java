@@ -40,11 +40,6 @@ public class PassageLengthIterator extends TransformIterator implements LengthsI
       passContext = (PassageScoringContext) context;
     }
   }
-  
-  @Override
-  public byte[] getRegionBytes() {
-    return Utility.fromString("passagelengths");
-  }
 
   @Override
   public int getCurrentLength() {
@@ -70,11 +65,6 @@ public class PassageLengthIterator extends TransformIterator implements LengthsI
     }
 
     return end - begin;
-  }
-
-  @Override
-  public int getCurrentIdentifier() {
-    return lengths.getCurrentIdentifier();
   }
 
   @Override

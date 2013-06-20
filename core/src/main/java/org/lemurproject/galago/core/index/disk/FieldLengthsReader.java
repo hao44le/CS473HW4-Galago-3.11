@@ -124,11 +124,6 @@ public class FieldLengthsReader implements LengthsReader {
     }
 
     @Override
-    public int getCurrentIdentifier() {
-      return extentsIterator.currentCandidate();
-    }
-
-    @Override
     public int currentCandidate() {
       return extentsIterator.currentCandidate();
     }
@@ -151,8 +146,8 @@ public class FieldLengthsReader implements LengthsReader {
     }
 
     @Override
-    public String getEntry() throws IOException {
-      return extentsIterator.getEntry();
+    public String getValueString() throws IOException {
+      return extentsIterator.getValueString();
     }
 
     @Override
@@ -187,11 +182,6 @@ public class FieldLengthsReader implements LengthsReader {
     }
 
     @Override
-    public byte[] getKeyBytes() throws IOException {
-      return Utility.fromString("lengths");
-    }
-
-    @Override
     public AnnotatedNode getAnnotatedNode() throws IOException {
       String type = "lengths";
       String className = this.getClass().getSimpleName();
@@ -202,11 +192,6 @@ public class FieldLengthsReader implements LengthsReader {
       List<AnnotatedNode> children = Collections.EMPTY_LIST;
 
       return new AnnotatedNode(type, className, parameters, document, atCandidate, returnValue, children);
-    }
-
-    @Override
-    public byte[] getRegionBytes() {
-      return Utility.fromString("lengths");
     }
   }
 }

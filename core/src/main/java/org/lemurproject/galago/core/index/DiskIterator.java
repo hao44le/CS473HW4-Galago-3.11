@@ -12,19 +12,26 @@ import org.lemurproject.galago.core.retrieval.processing.ScoringContext;
  * @author sjh
  */
 public abstract class DiskIterator implements BaseIterator {
-
   protected ScoringContext context;
-
-  // each DiskIterator should have some key
+  
+  /**
+   * For debugging only: getKey as string (it is a byte[]), you don't know the encoding.
+   * @return string of byte[] key
+   * @throws IOException 
+   * @see Utility.toString
+   */
   abstract public String getKeyString() throws IOException;
-
-  abstract public byte[] getKeyBytes() throws IOException;
-
+  
   // could add a few extra functions to the Leaf Node iterator here.
   // This will pass up topdocs information if it's available
   @Override
   public void setContext(ScoringContext context) {
     this.context = context;
+  }
+
+  @Override
+  public boolean hasMatch(int identifier) {
+    return !isDone() && currentCandidate() == identifier;
   }
 
   @Override

@@ -154,23 +154,13 @@ public class MinCountIterator extends DiskIterator implements CountIterator {
   }
 
   @Override
-  public byte[] getKeyBytes() throws IOException {
-    return Utility.fromString(nodeParams.get("default", "missing-key"));
-  }
-
-  @Override
-  public String getEntry() throws IOException {
+  public String getValueString() throws IOException {
     return getKeyString() + "," + count();
   }
 
   @Override
   public AnnotatedNode getAnnotatedNode() throws IOException {
     throw new UnsupportedOperationException("Not supported yet.");
-  }
-
-  @Override
-  public byte[] key() {
-    return Utility.fromString(nodeParams.get("default", "missing-key"));
   }
 
   @Override

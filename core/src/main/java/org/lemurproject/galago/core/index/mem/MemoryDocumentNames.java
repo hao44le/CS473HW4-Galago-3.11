@@ -278,7 +278,7 @@ public class MemoryDocumentNames implements MemoryIndexPart, NamesReader {
       super(ki);
     }
 
-    public String getEntry() throws IOException {
+    public String getValueString() throws IOException {
       KIterator ki = (KIterator) iterator;
       StringBuilder sb = new StringBuilder();
       sb.append(ki.getCurrentIdentifier());
@@ -326,11 +326,6 @@ public class MemoryDocumentNames implements MemoryIndexPart, NamesReader {
     @Override
     public String getKeyString() throws IOException {
       return "names";
-    }
-
-    @Override
-    public byte[] getKeyBytes() throws IOException {
-      return Utility.fromString("names");
     }
 
     @Override
