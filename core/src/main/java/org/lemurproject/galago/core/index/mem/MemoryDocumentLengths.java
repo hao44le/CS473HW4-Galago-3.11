@@ -133,7 +133,7 @@ public class MemoryDocumentLengths implements MemoryIndexPart, LengthsReader {
     }
 
     while (!iterator.isDone()) {
-      int identifier = ((LengthsIterator) iterator).getCurrentIdentifier();
+      int identifier = ((LengthsIterator) iterator).currentCandidate();
       int length = ((LengthsIterator) iterator).getCurrentLength();
       fieldLengths.add(identifier, length);
 
@@ -237,9 +237,9 @@ public class MemoryDocumentLengths implements MemoryIndexPart, LengthsReader {
     while (!fields.isDone()) {
       fieldLengths = (FieldLengthsIterator) fields.getValueIterator();
       while (!fieldLengths.isDone()) {
-        ld = new FieldLengthData(fieldLengths.key(), fieldLengths.getCurrentIdentifier(), fieldLengths.getCurrentLength());
+        ld = new FieldLengthData(Utility.fromString(fieldLengths.getKeyString()), fieldLengths.currentCandidate(), fieldLengths.getCurrentLength());
         writer.process(ld);
-        fieldLengths.movePast(fieldLengths.getCurrentIdentifier());
+        fieldLengths.movePast(fieldLengths.currentCandidate());
       }
       fields.nextKey();
     }
@@ -347,11 +347,6 @@ public class MemoryDocumentLengths implements MemoryIndexPart, LengthsReader {
     }
 
     @Override
-    public byte[] getKeyBytes() throws IOException {
-      return fieldLengths.fieldName.getBytes();
-    }
-
-    @Override
     public void reset() throws IOException {
       if (this.fieldLengths.totalDocumentCount == 0) {
         this.currDoc = Integer.MAX_VALUE;
@@ -401,8 +396,8 @@ public class MemoryDocumentLengths implements MemoryIndexPart, LengthsReader {
     }
 
     @Override
-    public String getEntry() throws IOException {
-      return this.getKeyString() + "," + this.getCurrentIdentifier() + "," + this.getCurrentLength();
+    public String getValueString() throws IOException {
+      return this.getKeyString() + "," + this.currentCandidate() + "," + this.getCurrentLength();
     }
 
     @Override
@@ -433,11 +428,6 @@ public class MemoryDocumentLengths implements MemoryIndexPart, LengthsReader {
     }
 
     @Override
-    public byte[] key() {
-      return this.fieldLengths.fieldName.getBytes();
-    }
-
-    @Override
     public int count() {
       return this.getCurrentLength();
     }
@@ -448,11 +438,6 @@ public class MemoryDocumentLengths implements MemoryIndexPart, LengthsReader {
     }
 
     @Override
-    public byte[] getRegionBytes() {
-      return this.key();
-    }
-
-    @Override
     public int getCurrentLength() {
       try {
         return this.fieldLengths.getLength(currDoc);
@@ -460,11 +445,6 @@ public class MemoryDocumentLengths implements MemoryIndexPart, LengthsReader {
         Logger.getLogger(this.getClass().getName()).info("Returning 0.\n");
         return 0;
       }
-    }
-
-    @Override
-    public int getCurrentIdentifier() {
-      return this.currDoc;
     }
 
     @Override

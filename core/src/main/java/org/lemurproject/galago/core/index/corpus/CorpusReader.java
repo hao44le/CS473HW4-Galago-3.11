@@ -149,7 +149,7 @@ public class CorpusReader extends KeyValueReader implements DocumentReader {
     }
 
     @Override
-    public String getEntry() throws IOException {
+    public String getValueString() throws IOException {
       return ((KeyIterator) iterator).getValueString();
     }
 
@@ -179,11 +179,6 @@ public class CorpusReader extends KeyValueReader implements DocumentReader {
     @Override
     public String getKeyString() {
       return "corpus";
-    }
-
-    @Override
-    public byte[] getKeyBytes() {
-      return Utility.fromString("corpus");
     }
 
     @Override

@@ -118,7 +118,7 @@ public class FakeExtentIterator implements ExtentIterator, CountIterator {
   }
 
   @Override
-  public String getEntry() throws IOException {
+  public String getValueString() throws IOException {
     throw new UnsupportedOperationException("Not supported yet.");
   }
 
@@ -153,10 +153,5 @@ public class FakeExtentIterator implements ExtentIterator, CountIterator {
     List<AnnotatedNode> children = Collections.EMPTY_LIST;
 
     return new AnnotatedNode(type, className, parameters, document, atCandidate, returnValue, children);
-  }
-
-  @Override
-  public byte[] key() {
-    return Utility.fromString("FAKE");
   }
 }

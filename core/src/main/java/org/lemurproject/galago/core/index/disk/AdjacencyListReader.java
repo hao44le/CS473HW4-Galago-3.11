@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import org.lemurproject.galago.core.index.BTreeReader;
 import org.lemurproject.galago.core.index.BTreeReader.BTreeIterator;
+import org.lemurproject.galago.core.index.BTreeValueIterator;
 import org.lemurproject.galago.core.index.KeyListReader;
 import org.lemurproject.galago.core.index.DiskIterator;
 import org.lemurproject.galago.core.retrieval.iterator.ScoreIterator;
@@ -103,7 +104,7 @@ public class AdjacencyListReader extends KeyListReader {
     }
   }
 
-  public class IntegerListIterator extends KeyListReader.ListIterator
+  public class IntegerListIterator extends BTreeValueIterator
           implements ScoreIterator {
 
     VByteInput stream;
@@ -160,7 +161,7 @@ public class AdjacencyListReader extends KeyListReader {
     }
 
     @Override
-    public String getEntry() throws IOException {
+    public String getValueString() throws IOException {
       StringBuilder builder = new StringBuilder();
 
       builder.append(getKeyString());

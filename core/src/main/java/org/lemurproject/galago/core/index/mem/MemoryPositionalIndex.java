@@ -529,7 +529,7 @@ public class MemoryPositionalIndex implements MemoryIndexPart, AggregateIndexPar
     }
 
     @Override
-    public String getEntry() throws IOException {
+    public String getValueString() throws IOException {
       StringBuilder builder = new StringBuilder();
 
       builder.append(Utility.toString(postings.key));
@@ -606,16 +606,6 @@ public class MemoryPositionalIndex implements MemoryIndexPart, AggregateIndexPar
     @Override
     public String getKeyString() throws IOException {
       return Utility.toString(postings.key);
-    }
-
-    @Override
-    public byte[] key() {
-      return postings.key;
-    }
-
-    @Override
-    public byte[] getKeyBytes() throws IOException {
-      return postings.key;
     }
 
     @Override
@@ -731,7 +721,7 @@ public class MemoryPositionalIndex implements MemoryIndexPart, AggregateIndexPar
     }
 
     @Override
-    public String getEntry() throws IOException {
+    public String getValueString() throws IOException {
       StringBuilder builder = new StringBuilder();
 
       builder.append(Utility.toString(postings.key));
@@ -804,16 +794,6 @@ public class MemoryPositionalIndex implements MemoryIndexPart, AggregateIndexPar
     @Override
     public String getKeyString() throws IOException {
       return Utility.toString(postings.key);
-    }
-
-    @Override
-    public byte[] key() {
-      return postings.key;
-    }
-
-    @Override
-    public byte[] getKeyBytes() throws IOException {
-      return postings.key;
     }
 
     @Override

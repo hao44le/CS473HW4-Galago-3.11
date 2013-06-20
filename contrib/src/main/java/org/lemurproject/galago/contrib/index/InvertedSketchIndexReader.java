@@ -17,6 +17,7 @@ import org.lemurproject.galago.contrib.hash.UniversalStringHashFunction;
 import org.lemurproject.galago.contrib.retrieval.iterator.MinCountIterator;
 import org.lemurproject.galago.core.index.BTreeReader;
 import org.lemurproject.galago.core.index.BTreeReader.BTreeIterator;
+import org.lemurproject.galago.core.index.BTreeValueIterator;
 import org.lemurproject.galago.core.index.KeyListReader;
 import org.lemurproject.galago.core.index.DiskIterator;
 import org.lemurproject.galago.core.index.stats.AggregateIndexPart;
@@ -182,7 +183,7 @@ public class InvertedSketchIndexReader extends KeyListReader implements Aggregat
     }
   }
 
-  public class TermCountIterator extends KeyListReader.ListIterator
+  public class TermCountIterator extends BTreeValueIterator
           implements NodeAggregateIterator, CountIterator {
 
     BTreeReader.BTreeIterator iterator;
@@ -295,7 +296,7 @@ public class InvertedSketchIndexReader extends KeyListReader implements Aggregat
     }
 
     @Override
-    public String getEntry() throws IOException {
+    public String getValueString() throws IOException {
       StringBuilder builder = new StringBuilder();
 
       builder.append(getKeyString());

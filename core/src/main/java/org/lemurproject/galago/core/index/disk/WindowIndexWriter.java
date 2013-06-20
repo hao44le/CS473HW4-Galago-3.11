@@ -1,15 +1,20 @@
 // BSD License (http://lemurproject.org/galago-license)
 package org.lemurproject.galago.core.index.disk;
 
+import gnu.trove.set.hash.TIntHashSet;
+import java.io.DataOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.logging.Logger;
+import org.lemurproject.galago.core.index.BTreeValueIterator;
 import org.lemurproject.galago.core.index.CompressedByteBuffer;
 import org.lemurproject.galago.core.index.CompressedRawByteBuffer;
 import org.lemurproject.galago.core.index.BTreeWriter;
 import org.lemurproject.galago.core.index.IndexElement;
 import org.lemurproject.galago.core.index.KeyListReader;
 import org.lemurproject.galago.core.index.merge.WindowIndexMerger;
+import org.lemurproject.galago.core.parse.NumericParameterAccumulator;
 import org.lemurproject.galago.core.types.NumberedExtent;
 import org.lemurproject.galago.tupleflow.InputClass;
 import org.lemurproject.galago.tupleflow.Parameters;
@@ -78,8 +83,8 @@ public class WindowIndexWriter implements
     boolean skip = parameters.getJSON().get("skipping", true);
     skipDistance = (int) parameters.getJSON().get("skipDistance", 500);
     skipResetDistance = (int) parameters.getJSON().get("skipResetDistance", 20);
-    options |= (skip ? KeyListReader.ListIterator.HAS_SKIPS : 0x0);
-    options |= KeyListReader.ListIterator.HAS_MAXTF;
+    options |= (skip ? BTreeValueIterator.HAS_SKIPS : 0x0);
+    options |= BTreeValueIterator.HAS_MAXTF;
     // more options here?
   }
 
@@ -157,7 +162,7 @@ public class WindowIndexWriter implements
       ends = new CompressedRawByteBuffer();
       header = new CompressedByteBuffer();
 
-      if ((options & KeyListReader.ListIterator.HAS_SKIPS) == KeyListReader.ListIterator.HAS_SKIPS) {
+      if ((options & BTreeValueIterator.HAS_SKIPS) == BTreeValueIterator.HAS_SKIPS) {
         skips = new CompressedRawByteBuffer();
         skipPositions = new CompressedRawByteBuffer();
       } else {
@@ -174,7 +179,7 @@ public class WindowIndexWriter implements
 
       if (skips != null && skips.length() == 0) {
         // not adding skip information b/c its empty
-        options &= (0xffff - KeyListReader.ListIterator.HAS_SKIPS);
+        options &= (0xffff - BTreeValueIterator.HAS_SKIPS);
         header.add(options);
       } else {
         header.add(options);
