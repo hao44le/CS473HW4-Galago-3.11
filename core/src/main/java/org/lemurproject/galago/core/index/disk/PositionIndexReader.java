@@ -125,10 +125,10 @@ public class PositionIndexReader extends KeyListReader implements AggregateIndex
 
     @Override
     public String getValueString() {
-      TermCountIterator it;
+      DiskCountIterator it;
       long count = -1;
       try {
-        it = new TermCountIterator(iterator);
+        it = new DiskCountIterator(new PositionIndexCountSource(iterator));
         count = it.count();
       } catch (IOException ioe) {
       }

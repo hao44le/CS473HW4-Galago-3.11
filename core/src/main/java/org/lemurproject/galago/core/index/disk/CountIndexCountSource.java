@@ -12,11 +12,10 @@ import org.lemurproject.galago.tupleflow.DataStream;
 import org.lemurproject.galago.tupleflow.VByteInput;
 
 /**
- * @author sjh
+ * @author sjh, jfoley
  * @see CountIndexReader
  */
 public class CountIndexCountSource extends BTreeValueSource implements CountSource {
-
   long documentCount;
   long collectionCount;
   long maximumPositionCount;
@@ -27,7 +26,7 @@ public class CountIndexCountSource extends BTreeValueSource implements CountSour
   int currentCount;
   boolean done;
   // Support for resets
-  long startPosition, endPosition;
+  final long startPosition, endPosition;
   // to support skipping
   VByteInput skips;
   VByteInput skipPositions;
@@ -45,23 +44,27 @@ public class CountIndexCountSource extends BTreeValueSource implements CountSour
 
   public CountIndexCountSource(BTreeReader.BTreeIterator iterator) throws IOException {
     super(iterator);
+    startPosition = btreeIter.getValueStart();
+    endPosition = btreeIter.getValueEnd();
     reset();
   }
 
   @Override
   public void reset() throws IOException {
-    startPosition = btreeIter.getValueStart();
-    endPosition = btreeIter.getValueEnd();
     currentDocument = 0;
     currentCount = 0;
     done = false;
     initialize();
   }
 
-  // Initialization method.
-  //
-  // Even though we check for skips multiple times, in terms of how the data is loaded
-  // its easier to do the parts when appropriate
+  /**
+   * Initialization method.
+   *
+   * Even though we check for skips multiple times, in terms of how the data is
+   * loaded its easier to do the parts when appropriate. The magic number here
+   * is a reasonable upper-bound on the header size (otherwise it reads 8k of
+   * data redundantly)
+   */
   protected void initialize() throws IOException {
     DataStream valueStream = btreeIter.getSubValueStream(0, 110);
     DataInput stream = new VByteInput(valueStream);
