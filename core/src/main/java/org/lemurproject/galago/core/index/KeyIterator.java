@@ -1,7 +1,6 @@
 // BSD License (http://lemurproject.org/galago-license)
 package org.lemurproject.galago.core.index;
 
-import org.lemurproject.galago.core.retrieval.iterator.disk.DiskIterator;
 import java.io.IOException;
 import org.lemurproject.galago.core.retrieval.iterator.BaseIterator;
 
@@ -40,5 +39,5 @@ public interface KeyIterator extends Comparable<KeyIterator> {
   // Access to the key's value. (Not all may be implemented)
   public byte[] getValueBytes() throws IOException;
   public String getValueString() throws IOException;
-  public DiskIterator getValueIterator() throws IOException;
+  public BaseIterator getValueIterator() throws IOException;
 }
