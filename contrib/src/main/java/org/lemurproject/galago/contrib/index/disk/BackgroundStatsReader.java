@@ -7,13 +7,13 @@ import java.util.HashMap;
 import java.util.Map;
 import org.lemurproject.galago.core.index.BTreeReader;
 import org.lemurproject.galago.core.index.KeyValueReader;
-import org.lemurproject.galago.core.retrieval.iterator.disk.DiskIterator;
 import org.lemurproject.galago.core.index.stats.AggregateIndexPart;
 import org.lemurproject.galago.core.index.stats.IndexPartStatistics;
 import org.lemurproject.galago.core.index.stats.NodeAggregateIterator;
 import org.lemurproject.galago.core.index.stats.NodeStatistics;
 import org.lemurproject.galago.core.parse.stem.Stemmer;
 import org.lemurproject.galago.core.retrieval.iterator.BaseIterator;
+import org.lemurproject.galago.core.retrieval.iterator.disk.DiskIterator;
 import org.lemurproject.galago.core.retrieval.processing.ScoringContext;
 import org.lemurproject.galago.core.retrieval.query.AnnotatedNode;
 import org.lemurproject.galago.core.retrieval.query.Node;
@@ -59,7 +59,7 @@ public class BackgroundStatsReader extends KeyValueReader implements AggregateIn
   }
 
   @Override
-  public DiskIterator getIterator(Node node) throws IOException {
+  public BaseIterator getIterator(Node node) throws IOException {
     if (node.getOperator().equals("counts")) {
       String stem = stemAsRequired(node.getDefaultParameter());
       KeyIterator ki = new KeyIterator(reader);
@@ -92,7 +92,7 @@ public class BackgroundStatsReader extends KeyValueReader implements AggregateIn
     return is;
   }
 
-  public static class KeyIterator extends KeyValueReader.KeyValueIterator {
+  public static class KeyIterator extends KeyValueIterator {
 
     public KeyIterator(BTreeReader reader) throws IOException {
       super(reader);
@@ -120,7 +120,7 @@ public class BackgroundStatsReader extends KeyValueReader implements AggregateIn
     }
 
     @Override
-    public DiskIterator getValueIterator() throws IOException {
+    public BaseIterator getValueIterator() throws IOException {
       return new BackgroundStatsIterator(this);
     }
 
@@ -135,7 +135,7 @@ public class BackgroundStatsReader extends KeyValueReader implements AggregateIn
     }
   }
 
-  public static class BackgroundStatsIterator extends DiskIterator implements NodeAggregateIterator {
+  public static class BackgroundStatsIterator implements BaseIterator, NodeAggregateIterator {
 
     protected KeyIterator iterator;
 
@@ -148,7 +148,6 @@ public class BackgroundStatsReader extends KeyValueReader implements AggregateIn
       return this.iterator.getNodeStatistics();
     }
 
-    @Override
     public String getKeyString() throws IOException {
       return this.iterator.getKeyString();
     }
