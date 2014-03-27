@@ -4,17 +4,15 @@
  */
 package org.lemurproject.galago.tupleflow;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.io.StringReader;
+import java.util.*;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  *
@@ -24,6 +22,7 @@ public class ParametersTest {
   @Test
   public void testCreation() {
     Parameters p = new Parameters();
+    assertNotNull(p);
   }
 
   @Test
@@ -68,13 +67,12 @@ public class ParametersTest {
     Parameters p = new Parameters();
     p.set("list", a);
     assertTrue(p.isList("list"));
-    assertTrue(p.isList("list", Parameters.Type.STRING));
-    assertFalse(p.isList("list", Parameters.Type.MAP));
+    assertTrue(p.isList("list", String.class));
+    assertFalse(p.isList("list", Parameters.class));
 
-    List<String> recv = (List<String>) p.getList("list");
+    List<String> recv = p.getList("list", String.class);
     assertEquals("woot", recv.get(0));
     assertEquals("yeah", recv.get(1));
-
 
     p.remove("list");
     assertFalse(p.isList("list"));
@@ -123,9 +121,15 @@ public class ParametersTest {
       // Now read it in.
       Parameters newParams = Parameters.parseFile(tempPath);
       assertEquals(params.toString(), newParams.toString());
+      assertEquals(params, newParams);
+
+      Parameters fromStringPath = Parameters.parseFile(tempPath.getAbsolutePath());
+      assertEquals(params.toString(), fromStringPath.toString());
+      assertEquals(params, fromStringPath);
+
     } finally {
       if (tempPath != null) {
-        tempPath.delete();
+        Assert.assertTrue(tempPath.delete());
       }
     }
   }
@@ -177,13 +181,13 @@ public class ParametersTest {
 
     Parameters p = Parameters.parseArgs(args);
     System.err.flush();
-    List<String> list = p.getList("arrayKey");
+    List<String> list = p.getList("arrayKey", String.class);
     assertEquals("val1", list.get(0));
     assertEquals("val2", list.get(1));
     assertEquals("val3", list.get(2));
     assertEquals(4L, p.getLong("intKey"));
     Parameters inner = p.getMap("mapKey");
-    List<Long> ints = (List<Long>) inner.getList("list");
+    List<Long> ints = inner.getList("list", Long.class);
     assertEquals(7L, ints.get(0).longValue());
     assertEquals(8L, ints.get(1).longValue());
     assertEquals(9L, ints.get(2).longValue());
@@ -204,7 +208,7 @@ public class ParametersTest {
     tokenizer.set("formats", formats);
     String[] fields = {"title", "date", "version"};
     tokenizer.set("fields", Arrays.asList(fields));
-    ArrayList pList = new ArrayList();
+    ArrayList<Parameters> pList = new ArrayList<Parameters>();
     pList.add(Parameters.parseString("{\"text\":\"query text one\", \"number\":\"10\"}"));
     pList.add(Parameters.parseString("{\"text\":\"query text two\", \"number\":\"11\"}"));
 
@@ -222,8 +226,93 @@ public class ParametersTest {
   @Test
   public void testTrailingCommas() throws Exception {
     Parameters test = Parameters.parseString(" { \"foo\" : [1, 2,3,\t],\n}");
-    assert(test.isList("foo"));
-    assert(test.getList("foo").size() == 3);
+    assertTrue(test.isList("foo"));
+    assertEquals(3, test.getList("foo").size());
   }
+
+  @Test
+  public void testParseMap() {
+    Map<String,String> data = new HashMap<String,String>();
+    data.put("keyA", "0");
+    data.put("keyB", "1");
+    Parameters test = Parameters.parseMap(data);
+
+    assertEquals(0, test.getLong("keyA"));
+    assertEquals(1, test.getLong("keyB"));
+    assertEquals("0", test.getAsString("keyA"));
+    assertEquals("1", test.getAsString("keyB"));
+    assertEquals(data.size(), test.size());
+  }
+
+  @Test
+  public void testWriteAndRead() throws IOException {
+    Parameters truth = complicated();
+    Parameters same0 = Parameters.parseReader(new StringReader(truth.toString()));
+    assertEquals(truth.toString(), same0.toString());
+    assertEquals(truth, same0);
+    Parameters same1 = Parameters.parseString(same0.toString());
+    assertEquals(truth.toString(), same1.toString());
+    assertEquals(truth, same1);
+
+  }
+
+  @Test
+  public void testCopyTo() throws IOException {
+    Parameters truth = complicated();
+    Parameters newP = new Parameters();
+    truth.copyTo(newP);
+    assertEquals(truth.toString(), newP.toString());
+    assertEquals(truth, newP);
+  }
+
+  @Test
+  public void testEscaping() throws IOException {
+    Parameters truth = new Parameters();
+    truth.set("withAQuote!", "here it comes \" to wreck the day...");
+    truth.set("withANewline!", "here it comes \n to wreck the day...");
+    truth.set("withABackslash!", "here it comes \\ to wreck the day...");
+    truth.set("too much!", "\\\r\n\t\b\f \\hmm\\ \f\b\n\r\\");
+    truth.set("C:\\", "busted keys \f\b\n\r\\");
+
+    Parameters same = Parameters.parseString(truth.toString());
+    for(String key : truth.keySet()) {
+      assertEquals(truth.get(key), same.get(key));
+    }
+  }
+
+  @Test
+  public void testBackoff() {
+    Parameters theBack = complicated();
+    Parameters theFront = new Parameters();
+    theFront.setBackoff(theBack);
+
+    assertEquals(theBack.toString(), theFront.toString());
+    assertEquals(theFront.getBackoff(), theBack);
+    assertSame(theFront.getBackoff(), theBack);
+  }
+
+  @Test
+  public void testENotation() throws IOException {
+    Parameters test = Parameters.parseString("{ \"foo\": -1.0E-10 }");
+    assertNotNull(test);
+    assertEquals(test.getDouble("foo"), -1.0e-10, 1e-12);
+  }
+
+  public static Parameters complicated() {
+    Parameters p = new Parameters();
+    p.set("bool-t", true);
+    p.set("bool-f", false);
+    p.set("long-a", 120L);
+    p.set("long-b", 0xdeadbeefL);
+    p.set("double-pi", Math.PI);
+    p.set("double-neg-e", -Math.exp(1));
+    p.set("list-a", Arrays.asList(true, false, "bar", "foo", Math.PI, -Math.exp(1), p.clone()));
+    p.set("list-b", Collections.EMPTY_LIST);
+    p.set("map-a", p.clone());
+    p.set("map-b", new Parameters());
+
+    return p;
+  }
+
 }
 
