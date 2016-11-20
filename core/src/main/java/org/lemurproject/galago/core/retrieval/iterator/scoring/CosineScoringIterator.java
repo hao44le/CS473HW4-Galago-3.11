@@ -54,30 +54,9 @@ public class CosineScoringIterator extends TransformIterator implements ScoreIte
   @Override
   public double score(ScoringContext cx) {
     double tf = counts.count(cx);
-    double docLength = lengths.length(cx);
-
-    // if tf or docLength are very small - we can output NaN - instead return 0.0.
-    if (tf <= 0 || docLength <= 1.0) {
-      return 0.0;
-    }
-
-    double TFN = tf * log2(1.0 + (c * averageDocumentLength) / docLength);
-
-    // if this number is negative -> NaN, so let's skip it.
-    if(docLength - 1.0 - TFN <= 0){
-      return 0.0;
-    }
-
-    double NORM = 1.0 / (TFN + 1.0);
-    double PP = 1.0 / (docLength - 1.0);
-
-    double score = NORM
-            * (-logFactorial(docLength - 1)
-            + logFactorial(TFN)
-            + logFactorial(docLength - 1 - TFN)
-            - (tf * log2(PP))
-            - ((docLength - 1 - TFN) * log2(1 - PP)));
-    return score;
+    double top = tf*tf;
+    double bottom = Math.sqrt(top*top);
+    return top / bottom;
   }
 
   @Override
@@ -103,16 +82,5 @@ public class CosineScoringIterator extends TransformIterator implements ScoreIte
     children.add(this.counts.getAnnotatedNode(c));
 
     return new AnnotatedNode(type, className, parameters, document, atCandidate, returnValue, children);
-  }
-
-  private double log2(double value) {
-    return Math.log(value) / Utility.log2;
-  }
-
-  /**
-   * Using Sterling's approximation.
-   */
-  private double logFactorial(double value) {
-    return value * Math.log(value) - value + 1.0;
   }
 }

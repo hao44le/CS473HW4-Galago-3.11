@@ -34,12 +34,17 @@ public class LogTFIDFScoringIterator extends TransformIterator implements ScoreI
   private final double c;
   // collectionStats and constants
   private final double averageDocumentLength;
+  private final double idf;
 
   public LogTFIDFScoringIterator(NodeParameters np, LengthsIterator lengths, CountIterator counts) {
     super(counts);
     this.np = np;
     this.counts = counts;
     this.lengths = lengths;
+
+    long documentCount = np.getLong("documentCount");
+    long df = np.getLong("nodeDocumentCount");
+    idf = Math.log(documentCount / (df+0.5));
 
     c = np.get("c", 1.0);
     averageDocumentLength = (double) np.getLong("collectionLength") / (double) np.getLong("documentCount");
@@ -53,31 +58,9 @@ public class LogTFIDFScoringIterator extends TransformIterator implements ScoreI
 
   @Override
   public double score(ScoringContext cx) {
-    double tf = counts.count(cx);
-    double docLength = lengths.length(cx);
-
-    // if tf or docLength are very small - we can output NaN - instead return 0.0.
-    if (tf <= 0 || docLength <= 1.0) {
-      return 0.0;
-    }
-
-    double TFN = tf * log2(1.0 + (c * averageDocumentLength) / docLength);
-
-    // if this number is negative -> NaN, so let's skip it.
-    if(docLength - 1.0 - TFN <= 0){
-      return 0.0;
-    }
-
-    double NORM = 1.0 / (TFN + 1.0);
-    double PP = 1.0 / (docLength - 1.0);
-
-    double score = NORM
-            * (-logFactorial(docLength - 1)
-            + logFactorial(TFN)
-            + logFactorial(docLength - 1 - TFN)
-            - (tf * log2(PP))
-            - ((docLength - 1 - TFN) * log2(1 - PP)));
-    return score;
+    double tf = counts.count(cx)+1;
+    double leftSide = Math.log(tf);
+    return leftSide * idf;
   }
 
   @Override
