@@ -1,0 +1,24 @@
+{
+     "queries" : [
+       {
+         "number" : "1", 
+         "text" : "  intermediate languages used in construction of multi targeted compilers  tcoll   "
+       },
+       {
+         "number" : "5", 
+         "text" : "  id like papers on design and implementation of editing interfaces window managers  command interpreters  etc   the essential issues are human interface design  with views on improvements to user efficiency effectiveness and satisfaction    " 
+       },
+       {
+         "number" : "12", 
+         "text" : "  portable operating systems   " 
+       },
+       {
+         "number" : "14", 
+         "text" : "  find all discussions of optimal implementations of sort algorithms for database management applications   " 
+       },
+       {
+         "number" : "36", 
+         "text" : "  fast algorithm for context free language recognition or parsing   " 
+       }
+    ]
+  }
