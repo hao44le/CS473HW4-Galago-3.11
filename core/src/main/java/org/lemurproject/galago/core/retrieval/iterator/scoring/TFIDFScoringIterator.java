@@ -23,7 +23,7 @@ import java.util.List;
  *
  * @author sjh
  */
-@RequiredStatistics(statistics = {"collectionLength", "documentCount"})
+@RequiredStatistics(statistics = {"collectionLength", "documentCount","nodeDocumentCount"})
 @RequiredParameters(parameters = {"c"})
 public class TFIDFScoringIterator extends TransformIterator implements ScoreIterator {
 
@@ -34,12 +34,17 @@ public class TFIDFScoringIterator extends TransformIterator implements ScoreIter
   private final double c;
   // collectionStats and constants
   private final double averageDocumentLength;
+  private final double idf;
 
   public TFIDFScoringIterator(NodeParameters np, LengthsIterator lengths, CountIterator counts) {
     super(counts);
     this.np = np;
     this.counts = counts;
     this.lengths = lengths;
+
+    long documentCount = np.getLong("documentCount");
+    long df = np.getLong("nodeDocumentCount");
+    idf = Math.log(documentCount / (df+0.5));
 
     c = np.get("c", 1.0);
     averageDocumentLength = (double) np.getLong("collectionLength") / (double) np.getLong("documentCount");
@@ -54,9 +59,7 @@ public class TFIDFScoringIterator extends TransformIterator implements ScoreIter
   @Override
   public double score(ScoringContext cx) {
     double tf = counts.count(cx);
-    double docLength = lengths.length(cx);
-
-    return tf;
+    return tf * idf;
   }
 
   @Override
