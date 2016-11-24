@@ -23,6 +23,8 @@ public class JSONQueryFormat {
    * if List(Map): [{"number":"id", "text":"query text"}, ...]
    */
   public static List<Parameters> collectQueries(Parameters parameters) throws IOException {
+
+    System.out.println("\n---------1abc---------\n"+parameters);
     List<Parameters> queries = new ArrayList<>();
     int unnumbered = 0;
     if (parameters.isString("query") || parameters.isList("query", String.class)) {
@@ -45,8 +47,10 @@ public class JSONQueryFormat {
       queries.addAll(parameters.getList("query", Parameters.class));
     }
     if (parameters.isList("queries", Parameters.class)) {
+      
       queries.addAll(parameters.getList("queries", Parameters.class));
     }
+    System.out.println("\n---------end---------\n"+queries);
     return queries;
   }
 
