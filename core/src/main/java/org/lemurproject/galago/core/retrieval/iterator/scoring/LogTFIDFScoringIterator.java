@@ -23,7 +23,7 @@ import java.util.List;
  *
  * @author sjh
  */
-@RequiredStatistics(statistics = {"collectionLength", "documentCount"})
+@RequiredStatistics(statistics = {"collectionLength", "documentCount","nodeFrequency"})
 @RequiredParameters(parameters = {"c"})
 public class LogTFIDFScoringIterator extends TransformIterator implements ScoreIterator {
 
@@ -34,7 +34,8 @@ public class LogTFIDFScoringIterator extends TransformIterator implements ScoreI
   private final double c;
   // collectionStats and constants
   private final double averageDocumentLength;
-  private final double idf;
+  private final long collectionLength;
+  private final long df;
 
   public LogTFIDFScoringIterator(NodeParameters np, LengthsIterator lengths, CountIterator counts) {
     super(counts);
@@ -42,9 +43,8 @@ public class LogTFIDFScoringIterator extends TransformIterator implements ScoreI
     this.counts = counts;
     this.lengths = lengths;
 
-    long documentCount = np.getLong("documentCount");
-    long df = np.getLong("nodeDocumentCount");
-    idf = Math.log(documentCount / (df+0.5));
+    collectionLength = np.getLong("collectionLength");
+    df = np.getLong("nodeFrequency");
 
     c = np.get("c", 1.0);
     averageDocumentLength = (double) np.getLong("collectionLength") / (double) np.getLong("documentCount");
@@ -58,9 +58,9 @@ public class LogTFIDFScoringIterator extends TransformIterator implements ScoreI
 
   @Override
   public double score(ScoringContext cx) {
-    double tf = counts.count(cx)+1;
-    double leftSide = Math.log(tf);
-    return leftSide * idf;
+    double tf = counts.count( cx );
+    double leftSide = Math.log(tf+1);
+    return leftSide * Math.log(collectionLength / (df+0.5));
   }
 
   @Override

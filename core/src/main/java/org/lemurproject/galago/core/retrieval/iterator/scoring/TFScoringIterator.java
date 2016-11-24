@@ -54,6 +54,7 @@ public class TFScoringIterator extends TransformIterator implements ScoreIterato
   @Override
   public double score(ScoringContext cx) {
     double tf = counts.count(cx);
+    System.out.println(cx.document+":"+tf);
     return tf;
   }
 
