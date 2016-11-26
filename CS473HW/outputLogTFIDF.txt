@@ -4,6 +4,7 @@
 
 ---------end---------
 [{ "number" : "1" , "text" : "  what articles exist which deal with tss  time sharing system   an operating system for ibm computers   " }, { "number" : "2" , "text" : "  i am interested in articles written either by prieve or udo pooch  prieve  b pooch  u   " }, { "number" : "3" , "text" : "  intermediate languages used in construction of multi targeted compilers  tcoll   " }, { "number" : "4" , "text" : "  im interested in mechanisms for communicating between disjoint processes possibly  but not exclusively  in a distributed environment   i would rather see descriptions of complete mechanisms  with or without implementations as opposed to theoretical work on the abstract problem   remote procedure calls and message passing are examples of my interests   " }, { "number" : "5" , "text" : "  id like papers on design and implementation of editing interfaces window managers  command interpreters  etc   the essential issues are human interface design  with views on improvements to user efficiency effectiveness and satisfaction    " }, { "number" : "6" , "text" : "  interested in articles on robotics  motion planning particularly the geometric and combinatorial aspects   we are not interested in the dynamics of arm motion   " }, { "number" : "7" , "text" : "  i am interested in distributed algorithms   concurrent programs in which processes communicate and synchronize by using message passing areas of particular interest include fault tolerance and techniques for understanding the correctness of these algorithms   " }, { "number" : "8" , "text" : "  addressing schemes for resources in networks  resource addressing in network operating systems   " }, { "number" : "9" , "text" : "  security considerations in local networks  network operating systems and distributed systems   " }, { "number" : "10" , "text" : "  parallel languages  languages for parallel computation   " }, { "number" : "11" , "text" : "  setl  very high level languages    " }, { "number" : "12" , "text" : "  portable operating systems   " }, { "number" : "13" , "text" : "  code optimization for space efficiency   " }, { "number" : "14" , "text" : "  find all discussions of optimal implementations of sort algorithms for database management applications   " }, { "number" : "15" , "text" : "  find all discussions of horizontal microcode optimization with special emphasis on optimization of loops and global optimization   " }, { "number" : "16" , "text" : "  find all descriptions of file handling in operating systems based on multiple processes and message passing   " }, { "number" : "17" , "text" : "  optimization of intermediate and machine code   " }, { "number" : "18" , "text" : "  languages and compilers for parallel processors  especially highly horizontal microcoded machines  code compaction   " }, { "number" : "19" , "text" : "  parallel algorithms    " }, { "number" : "20" , "text" : "  graph theoretic algorithms applicable to sparse matrices   " }, { "number" : "21" , "text" : "  computational complexity  intractability  class complete reductions algorithms and efficiency   " }, { "number" : "22" , "text" : "  i am interested in hidden line and hidden surface algorithms for cylinders  toroids  spheres  and cones   this is a rather specialized topic in computer graphics   " }, { "number" : "23" , "text" : "  distributed computing structures and algorithms   " }, { "number" : "24" , "text" : "  applied stochastic processes   " }, { "number" : "25" , "text" : "  performance evaluation and modelling of computer systems   " }]
+ScoreCombinationIterator get called!!!!					
 1 Q0 CACM-1827 1 5.24998395 galago
 1 Q0 CACM-1844 2 5.16714874 galago
 1 Q0 CACM-2535 3 4.87675906 galago
@@ -14,6 +15,7 @@
 1 Q0 CACM-2378 8 4.35914132 galago
 1 Q0 CACM-2054 9 4.25694976 galago
 1 Q0 CACM-1938 10 4.17033165 galago
+ScoreCombinationIterator get called!!!!					
 2 Q0 CACM-2786 1 2.60432977 galago
 2 Q0 CACM-1931 2 2.39889371 galago
 2 Q0 CACM-2002 3 2.39042148 galago
@@ -24,6 +26,7 @@
 2 Q0 CACM-0616 8 2.25140358 galago
 2 Q0 CACM-2905 9 2.23982049 galago
 2 Q0 CACM-2233 10 2.23636092 galago
+ScoreCombinationIterator get called!!!!					
 3 Q0 CACM-2061 1 5.30007637 galago
 3 Q0 CACM-2939 2 4.84526257 galago
 3 Q0 CACM-1788 3 4.73355454 galago
@@ -34,6 +37,7 @@
 3 Q0 CACM-2652 8 4.17121628 galago
 3 Q0 CACM-1135 9 4.12503615 galago
 3 Q0 CACM-1223 10 4.10571471 galago
+ScoreCombinationIterator get called!!!!					
 4 Q0 CACM-2931 1 3.85392673 galago
 4 Q0 CACM-1665 2 3.72910972 galago
 4 Q0 CACM-2233 3 3.54530201 galago
@@ -44,6 +48,7 @@
 4 Q0 CACM-2314 8 3.11193375 galago
 4 Q0 CACM-2438 9 3.06391352 galago
 4 Q0 CACM-0616 10 3.05699870 galago
+ScoreCombinationIterator get called!!!!					
 5 Q0 CACM-2035 1 4.28263351 galago
 5 Q0 CACM-1829 2 4.04261414 galago
 5 Q0 CACM-2003 3 4.03630345 galago
@@ -54,6 +59,7 @@
 5 Q0 CACM-2357 8 3.22096935 galago
 5 Q0 CACM-2314 9 3.20870681 galago
 5 Q0 CACM-2716 10 3.19183551 galago
+ScoreCombinationIterator get called!!!!					
 6 Q0 CACM-2931 1 5.17735578 galago
 6 Q0 CACM-2721 2 4.06085550 galago
 6 Q0 CACM-0670 3 4.03654678 galago
@@ -64,6 +70,7 @@
 6 Q0 CACM-0695 8 3.66405086 galago
 6 Q0 CACM-2233 9 3.64336880 galago
 6 Q0 CACM-2046 10 3.59442725 galago
+ScoreCombinationIterator get called!!!!					
 7 Q0 CACM-1665 1 4.78199344 galago
 7 Q0 CACM-2233 2 4.35285958 galago
 7 Q0 CACM-2289 3 4.26853037 galago
@@ -74,6 +81,7 @@
 7 Q0 CACM-3077 8 3.86638912 galago
 7 Q0 CACM-1350 9 3.74241190 galago
 7 Q0 CACM-2317 10 3.73657391 galago
+ScoreCombinationIterator get called!!!!					
 8 Q0 CACM-2625 1 6.84254875 galago
 8 Q0 CACM-2951 2 6.44646461 galago
 8 Q0 CACM-2949 3 5.57592445 galago
@@ -84,6 +92,7 @@
 8 Q0 CACM-1591 8 4.73671346 galago
 8 Q0 CACM-1695 9 4.71122550 galago
 8 Q0 CACM-2371 10 4.68810230 galago
+ScoreCombinationIterator get called!!!!					
 9 Q0 CACM-2949 1 6.84751300 galago
 9 Q0 CACM-1695 2 6.32018329 galago
 9 Q0 CACM-2849 3 6.30117133 galago
@@ -94,6 +103,7 @@
 9 Q0 CACM-1685 8 5.50769025 galago
 9 Q0 CACM-2372 9 5.39795792 galago
 9 Q0 CACM-1591 10 5.22578078 galago
+ScoreCombinationIterator get called!!!!					
 10 Q0 CACM-2785 1 8.84737586 galago
 10 Q0 CACM-1747 2 7.66568748 galago
 10 Q0 CACM-2060 3 7.50758744 galago
@@ -104,6 +114,7 @@
 10 Q0 CACM-2289 8 6.85855627 galago
 10 Q0 CACM-1471 9 6.71735264 galago
 10 Q0 CACM-2851 10 6.63215090 galago
+ScoreCombinationIterator get called!!!!					
 11 Q0 CACM-2699 1 9.95582499 galago
 11 Q0 CACM-2906 2 9.04156696 galago
 11 Q0 CACM-2923 3 6.99877028 galago
@@ -114,6 +125,7 @@
 11 Q0 CACM-2246 8 5.96314701 galago
 11 Q0 CACM-2198 9 5.74091233 galago
 11 Q0 CACM-2091 10 5.58548970 galago
+ScoreCombinationIterator get called!!!!					
 12 Q0 CACM-3127 1 12.03881146 galago
 12 Q0 CACM-1591 2 8.89240777 galago
 12 Q0 CACM-2319 3 8.80783503 galago
@@ -124,6 +136,7 @@
 12 Q0 CACM-2424 8 7.35779351 galago
 12 Q0 CACM-2317 9 7.25424136 galago
 12 Q0 CACM-2629 10 7.25424136 galago
+ScoreCombinationIterator get called!!!!					
 13 Q0 CACM-2897 1 8.53774234 galago
 13 Q0 CACM-2033 2 7.45518389 galago
 13 Q0 CACM-2559 3 6.12933950 galago
@@ -134,6 +147,7 @@
 13 Q0 CACM-2680 8 5.19931423 galago
 13 Q0 CACM-2929 9 5.10316987 galago
 13 Q0 CACM-2491 10 5.04153359 galago
+ScoreCombinationIterator get called!!!!					
 14 Q0 CACM-2289 1 4.35892355 galago
 14 Q0 CACM-3087 2 4.25746308 galago
 14 Q0 CACM-1961 3 4.23016265 galago
@@ -144,6 +158,7 @@
 14 Q0 CACM-2181 8 3.94395772 galago
 14 Q0 CACM-2017 9 3.91150216 galago
 14 Q0 CACM-2451 10 3.85887638 galago
+ScoreCombinationIterator get called!!!!					
 15 Q0 CACM-3125 1 5.53195876 galago
 15 Q0 CACM-2344 2 5.33753794 galago
 15 Q0 CACM-2897 3 5.22009222 galago
@@ -154,6 +169,7 @@
 15 Q0 CACM-2979 8 3.79257138 galago
 15 Q0 CACM-2716 9 3.79119153 galago
 15 Q0 CACM-3080 10 3.78597114 galago
+ScoreCombinationIterator get called!!!!					
 16 Q0 CACM-1665 1 5.06453433 galago
 16 Q0 CACM-2002 2 5.06210160 galago
 16 Q0 CACM-2378 3 4.92560879 galago
@@ -164,6 +180,7 @@
 16 Q0 CACM-2358 8 4.07895006 galago
 16 Q0 CACM-2198 9 4.07492908 galago
 16 Q0 CACM-2535 10 3.97352713 galago
+ScoreCombinationIterator get called!!!!					
 17 Q0 CACM-2897 1 7.80914154 galago
 17 Q0 CACM-1665 2 7.39635029 galago
 17 Q0 CACM-2979 3 7.01680570 galago
@@ -174,6 +191,7 @@
 17 Q0 CACM-1223 8 6.05949712 galago
 17 Q0 CACM-1154 9 5.91189688 galago
 17 Q0 CACM-1676 10 5.82295138 galago
+ScoreCombinationIterator get called!!!!					
 18 Q0 CACM-1665 1 5.14898853 galago
 18 Q0 CACM-1135 2 4.88662277 galago
 18 Q0 CACM-2138 3 4.01053247 galago
@@ -184,6 +202,7 @@
 18 Q0 CACM-2433 8 3.69556040 galago
 18 Q0 CACM-2342 9 3.68106896 galago
 18 Q0 CACM-1542 10 3.62790403 galago
+ScoreCombinationIterator get called!!!!					
 19 Q0 CACM-2289 1 10.15497190 galago
 19 Q0 CACM-2973 2 9.96957103 galago
 19 Q0 CACM-2266 3 9.67675432 galago
@@ -194,6 +213,7 @@
 19 Q0 CACM-2401 8 8.33689196 galago
 19 Q0 CACM-1601 9 8.15149109 galago
 19 Q0 CACM-1811 10 7.65748646 galago
+ScoreCombinationIterator get called!!!!					
 20 Q0 CACM-2986 1 5.65434843 galago
 20 Q0 CACM-2695 2 5.61739088 galago
 20 Q0 CACM-1961 3 4.98310509 galago
@@ -204,6 +224,7 @@
 20 Q0 CACM-2769 8 4.17976760 galago
 20 Q0 CACM-3018 9 4.15297998 galago
 20 Q0 CACM-3139 10 3.99131705 galago
+ScoreCombinationIterator get called!!!!					
 21 Q0 CACM-2702 1 5.02837656 galago
 21 Q0 CACM-3018 2 4.50581076 galago
 21 Q0 CACM-2061 3 4.39061582 galago
@@ -214,6 +235,7 @@
 21 Q0 CACM-2828 8 3.57443303 galago
 21 Q0 CACM-2932 9 3.55182102 galago
 21 Q0 CACM-2950 10 3.50652963 galago
+ScoreCombinationIterator get called!!!!					
 22 Q0 CACM-2692 1 4.61045638 galago
 22 Q0 CACM-2829 2 4.31007517 galago
 22 Q0 CACM-2924 3 4.19392637 galago
@@ -224,6 +246,7 @@
 22 Q0 CACM-2004 8 3.91474414 galago
 22 Q0 CACM-2913 9 3.86985298 galago
 22 Q0 CACM-2925 10 3.85016197 galago
+ScoreCombinationIterator get called!!!!					
 23 Q0 CACM-2060 1 6.60038753 galago
 23 Q0 CACM-1525 2 6.35558237 galago
 23 Q0 CACM-3148 3 6.28890975 galago
@@ -234,6 +257,7 @@
 23 Q0 CACM-2433 8 5.49069084 galago
 23 Q0 CACM-1862 9 5.42055175 galago
 23 Q0 CACM-2828 10 5.40730270 galago
+ScoreCombinationIterator get called!!!!					
 24 Q0 CACM-1811 1 7.31514541 galago
 24 Q0 CACM-2065 2 6.69386020 galago
 24 Q0 CACM-3120 3 5.47968247 galago
@@ -244,6 +268,7 @@
 24 Q0 CACM-1410 8 5.09833392 galago
 24 Q0 CACM-2535 9 5.09833392 galago
 24 Q0 CACM-2723 10 4.97762762 galago
+ScoreCombinationIterator get called!!!!					
 25 Q0 CACM-3048 1 10.23866762 galago
 25 Q0 CACM-2318 2 9.18359830 galago
 25 Q0 CACM-2319 3 8.56175320 galago

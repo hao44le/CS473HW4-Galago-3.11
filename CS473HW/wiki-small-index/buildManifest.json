@@ -1,0 +1,42 @@
+{
+  "corpus" : true,
+  "corpusParameters" : {
+    "blockSize" : 512,
+    "filename" : "/Users/geleichen/Downloads/lemur-galago/CS473HW/wiki-small-index/corpus",
+    "mergerClass" : "org.lemurproject.galago.core.index.merge.CorpusMerger",
+    "readerClass" : "org.lemurproject.galago.core.index.corpus.CorpusReader",
+    "tokenizer" : {
+      "fields" : [ ],
+      "formats" : {
+
+      }
+    },
+    "writerClass" : "org.lemurproject.galago.core.index.corpus.CorpusFolderWriter"
+  },
+  "fieldIndex" : false,
+  "fieldIndexParameters" : {
+    "nonStemmedPostings" : true,
+    "stemmedPostings" : true,
+    "stemmer" : [ "krovetz"]
+  },
+  "galagoVersion" : "3.11-SNAPSHOT",
+  "galagoVersionBuildDateTime" : "2016-11-26 20:29",
+  "indexBuildDateTime" : "2016-11-26 15:38",
+  "indexPath" : "/Users/geleichen/Downloads/lemur-galago/CS473HW/wiki-small-index",
+  "inputPath" : [ "/Users/geleichen/Downloads/lemur-galago/CS473HW/en"],
+  "nonStemmedPostings" : true,
+  "skipDistance" : 500,
+  "skipping" : true,
+  "stemmedCounts" : false,
+  "stemmedPostings" : true,
+  "stemmer" : [ "krovetz"],
+  "stemmerClass" : {
+    "krovetz" : "org.lemurproject.galago.core.parse.stem.KrovetzStemmer"
+  },
+  "tokenizer" : {
+    "fields" : [ ],
+    "formats" : {
+
+    }
+  }
+}

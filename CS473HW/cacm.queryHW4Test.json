@@ -3,7 +3,7 @@
   "queries": [
     {
       "number": "1",
-      "text": "  i am interested in articles written either by prieve or udo pooch  prieve  b pooch  u   "
+      "text": "#ctf(data science)"
     }
   ]
 }

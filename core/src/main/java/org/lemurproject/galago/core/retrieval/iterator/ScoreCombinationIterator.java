@@ -39,7 +39,7 @@ public class ScoreCombinationIterator extends DisjunctionIterator implements Sco
   public ScoreCombinationIterator(NodeParameters parameters,
           ScoreIterator[] childIterators) {
     super(childIterators);
-    System.out.println("ScoreCombinationIterator get called!!!!\t\t\t\t\t");
+
     assert (childIterators.length > 0) : "#combine nodes must have more than 1 child.";
 
     this.np = parameters;
