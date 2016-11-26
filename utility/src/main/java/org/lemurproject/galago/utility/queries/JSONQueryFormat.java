@@ -28,6 +28,7 @@ public class JSONQueryFormat {
     List<Parameters> queries = new ArrayList<>();
     int unnumbered = 0;
     if (parameters.isString("query") || parameters.isList("query", String.class)) {
+
       String id;
       for (String q : parameters.getAsList("query", String.class)) {
         id = "unk-" + unnumbered;
@@ -47,8 +48,9 @@ public class JSONQueryFormat {
       queries.addAll(parameters.getList("query", Parameters.class));
     }
     if (parameters.isList("queries", Parameters.class)) {
-      
-      queries.addAll(parameters.getList("queries", Parameters.class));
+      List<Parameters> querList = parameters.getList("queries", Parameters.class);
+      queries.addAll(querList);
+      System.out.println("fourth if " +queries);
     }
     System.out.println("\n---------end---------\n"+queries);
     return queries;
