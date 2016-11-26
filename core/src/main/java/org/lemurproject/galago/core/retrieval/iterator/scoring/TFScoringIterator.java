@@ -41,10 +41,6 @@ public class TFScoringIterator extends ScoringFunctionIterator {
     this.np = np;
     this.counts = counts;
     this.lengths = lengths;
-    System.out.println("TFScoringIterator instuctor");
-    System.out.println("np: "+np);
-    System.out.println("lengths: "+lengths);
-    System.out.println("counts: "+counts);
     c = np.get("c", 1.0);
     averageDocumentLength = (double) np.getLong("collectionLength") / (double) np.getLong("documentCount");
   }
@@ -53,7 +49,6 @@ public class TFScoringIterator extends ScoringFunctionIterator {
   @Override
   public double score(ScoringContext c) {
     double tf = counts.count(c);
-    System.out.println("tf: "+c.document+":"+tf);
     return tf;
   }
 

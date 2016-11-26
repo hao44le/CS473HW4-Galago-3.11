@@ -13,6 +13,7 @@ import org.lemurproject.galago.core.retrieval.processing.ScoringContext;
 import org.lemurproject.galago.core.retrieval.query.AnnotatedNode;
 import org.lemurproject.galago.core.retrieval.query.NodeParameters;
 import org.lemurproject.galago.tupleflow.Utility;
+import org.lemurproject.galago.core.retrieval.iterator.ScoringFunctionIterator;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -23,9 +24,9 @@ import java.util.List;
  *
  * @author sjh
  */
-@RequiredStatistics(statistics = {"collectionLength", "documentCount","nodeDocumentCount","nodeFrequency"})
+@RequiredStatistics(statistics = {"collectionLength", "documentCount","nodeDocumentCount"})
 @RequiredParameters(parameters = {"c"})
-public class TFIDFScoringIterator extends TransformIterator implements ScoreIterator {
+public class TFIDFScoringIterator extends ScoringFunctionIterator {
 
   private final LengthsIterator lengths;
   private final CountIterator counts;
@@ -34,34 +35,26 @@ public class TFIDFScoringIterator extends TransformIterator implements ScoreIter
   private final double c;
   // collectionStats and constants
   private final double averageDocumentLength;
-  private final long collectionLength;
+  private final long documentCount;
   private final long df;
 
-  public TFIDFScoringIterator(NodeParameters np, LengthsIterator lengths, CountIterator counts) {
-    super(counts);
+  public TFIDFScoringIterator(NodeParameters np, LengthsIterator lengths, CountIterator counts) throws IOException  {
+    super(np,lengths,counts);
     this.np = np;
     this.counts = counts;
     this.lengths = lengths;
-
-    collectionLength = np.getLong("collectionLength");
-    df = np.getLong("nodeFrequency");
-
+    this.documentCount = np.getLong("documentCount");
+    this.df = np.getLong("nodeDocumentCount");
     c = np.get("c", 1.0);
     averageDocumentLength = (double) np.getLong("collectionLength") / (double) np.getLong("documentCount");
   }
 
-  @Override
-  public void syncTo(long identifier) throws IOException {
-    super.syncTo(identifier);
-    lengths.syncTo(identifier);
-  }
 
   @Override
-  public double score(ScoringContext cx) {
-    double tf = ((CountIterator) iterator).count(cx);
-    System.out.println("tf is: "+tf);
-    double idf = Math.log(collectionLength / (df+0.5));
-    return tf * idf;
+  public double score(ScoringContext c) {
+    double tf = counts.count(c);
+    double idf = Math.log(documentCount / (df+0.1));
+    return tf*idf;
   }
 
   @Override
@@ -72,20 +65,5 @@ public class TFIDFScoringIterator extends TransformIterator implements ScoreIter
   @Override
   public double minimumScore() {
     return Double.NEGATIVE_INFINITY;
-  }
-
-  @Override
-  public AnnotatedNode getAnnotatedNode(ScoringContext c) throws IOException {
-    String type = "score";
-    String className = this.getClass().getSimpleName();
-    String parameters = np.toString();
-    long document = currentCandidate();
-    boolean atCandidate = hasMatch(c);
-    String returnValue = Double.toString(score(c));
-    List<AnnotatedNode> children = new ArrayList<>();
-    children.add(this.lengths.getAnnotatedNode(c));
-    children.add(this.counts.getAnnotatedNode(c));
-
-    return new AnnotatedNode(type, className, parameters, document, atCandidate, returnValue, children);
   }
 }

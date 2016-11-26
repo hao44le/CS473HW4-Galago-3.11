@@ -29,9 +29,6 @@ public class CombinationTFOperator extends DisjunctionIterator implements ScoreI
     this.np = parameters;
 
     this.scoreIterators = childIterators;
-    System.out.println("CombinationTFOperator");
-    System.out.println("np: "+np);
-    System.out.println("childIterators: "+childIterators);
   }
 
   @Override
@@ -41,7 +38,6 @@ public class CombinationTFOperator extends DisjunctionIterator implements ScoreI
       double score = scoreIterators[i].score(c);
       total += score;
     }
-    System.out.println("combin: "+total);
     return total;
   }
 
