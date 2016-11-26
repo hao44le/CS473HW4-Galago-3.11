@@ -13,6 +13,7 @@ import org.lemurproject.galago.core.retrieval.processing.ScoringContext;
 import org.lemurproject.galago.core.retrieval.query.AnnotatedNode;
 import org.lemurproject.galago.core.retrieval.query.NodeParameters;
 import org.lemurproject.galago.tupleflow.Utility;
+import org.lemurproject.galago.core.retrieval.iterator.ScoringFunctionIterator;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -25,7 +26,7 @@ import java.util.List;
  */
 @RequiredStatistics(statistics = {"collectionLength", "documentCount"})
 @RequiredParameters(parameters = {"c"})
-public class TFScoringIterator extends TransformIterator implements ScoreIterator {
+public class TFScoringIterator extends ScoringFunctionIterator {
 
   private final LengthsIterator lengths;
   private final CountIterator counts;
@@ -35,25 +36,19 @@ public class TFScoringIterator extends TransformIterator implements ScoreIterato
   // collectionStats and constants
   private final double averageDocumentLength;
 
-  public TFScoringIterator(NodeParameters np, LengthsIterator lengths, CountIterator counts) {
-    super(counts);
+  public TFScoringIterator(NodeParameters np, LengthsIterator lengths, CountIterator counts) throws IOException  {
+    super(np,lengths,counts);
     this.np = np;
     this.counts = counts;
     this.lengths = lengths;
-
     c = np.get("c", 1.0);
     averageDocumentLength = (double) np.getLong("collectionLength") / (double) np.getLong("documentCount");
   }
 
-  @Override
-  public void syncTo(long identifier) throws IOException {
-    super.syncTo(identifier);
-    lengths.syncTo(identifier);
-  }
 
   @Override
-  public double score(ScoringContext cx) {
-    double tf = counts.count(cx);
+  public double score(ScoringContext c) {
+    double tf = counts.count(c);
     return tf;
   }
 
@@ -65,20 +60,5 @@ public class TFScoringIterator extends TransformIterator implements ScoreIterato
   @Override
   public double minimumScore() {
     return Double.NEGATIVE_INFINITY;
-  }
-
-  @Override
-  public AnnotatedNode getAnnotatedNode(ScoringContext c) throws IOException {
-    String type = "score";
-    String className = this.getClass().getSimpleName();
-    String parameters = np.toString();
-    long document = currentCandidate();
-    boolean atCandidate = hasMatch(c);
-    String returnValue = Double.toString(score(c));
-    List<AnnotatedNode> children = new ArrayList<>();
-    children.add(this.lengths.getAnnotatedNode(c));
-    children.add(this.counts.getAnnotatedNode(c));
-
-    return new AnnotatedNode(type, className, parameters, document, atCandidate, returnValue, children);
   }
 }
