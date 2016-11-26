@@ -23,9 +23,11 @@ public class JSONQueryFormat {
    * if List(Map): [{"number":"id", "text":"query text"}, ...]
    */
   public static List<Parameters> collectQueries(Parameters parameters) throws IOException {
+
     List<Parameters> queries = new ArrayList<>();
     int unnumbered = 0;
     if (parameters.isString("query") || parameters.isList("query", String.class)) {
+
       String id;
       for (String q : parameters.getAsList("query", String.class)) {
         id = "unk-" + unnumbered;
@@ -45,8 +47,35 @@ public class JSONQueryFormat {
       queries.addAll(parameters.getList("query", Parameters.class));
     }
     if (parameters.isList("queries", Parameters.class)) {
-      queries.addAll(parameters.getList("queries", Parameters.class));
+      List<Parameters> querList = parameters.getList("queries", Parameters.class);
+      String scorer = parameters.getString("scorer");
+      // System.out.println("scoreer: "+ scorer);
+      // System.out.println(parameters);
+      for(Parameters p : querList){
+          String query = p.getString("text");
+          switch (scorer){
+            case "tf":
+              p.set("text","#ctf("+query+")");
+              break;
+            case "tfidf":
+              p.set("text","#ctf("+query+")");
+              break;
+            case "logtfidf":
+              p.set("text","#ctf("+query+")");
+              break;
+            case "cosine":
+              p.set("text","#ctf("+query+")");
+              break;
+            default:
+              break;
+          }
+          // System.out.println(p.getString("text"));
+
+      }
+      queries.addAll(querList);
+      // System.out.println("after if " +queries);
     }
+    // System.out.println("\n---------end---------\n"+queries);
     return queries;
   }
 

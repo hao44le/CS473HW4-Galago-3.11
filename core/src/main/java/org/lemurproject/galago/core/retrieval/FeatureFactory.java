@@ -79,6 +79,7 @@ public class FeatureFactory {
 
     // scoring function added by Gelei
     {TFScoringIterator.class.getName(), "tf"},
+    {CombinationTFOperator.class.getName(), "ctf"},
     {TFIDFScoringIterator.class.getName(), "tfidf"},
     {LogTFIDFScoringIterator.class.getName(), "logtfidf"},
     {CosineScoringIterator.class.getName(), "cosine"},
