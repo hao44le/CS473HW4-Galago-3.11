@@ -64,7 +64,7 @@ public class JSONQueryFormat {
               p.set("text","#ctf("+query+")");
               break;
             case "cosine":
-              p.set("text","#ctf("+query+")");
+              p.set("text","#ccosine("+query+")");
               break;
             default:
               break;

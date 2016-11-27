@@ -83,6 +83,7 @@ public class FeatureFactory {
     {TFIDFScoringIterator.class.getName(), "tfidf"},
     {LogTFIDFScoringIterator.class.getName(), "logtfidf"},
     {CosineScoringIterator.class.getName(), "cosine"},
+    {CombinationCosineOperator.class.getName(), "ccosine"},
 
     // indicator iterators
     {UniversalIndicatorIterator.class.getName(), "all"},
