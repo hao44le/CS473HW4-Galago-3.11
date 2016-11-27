@@ -51,27 +51,30 @@ public class CombinationCosineOperator extends DisjunctionIterator implements Sc
         System.err.println("Caught IOException: " + e.getMessage());
       }
     }
-
+    // System.out.println("table:"+table);
     for (int i = 0; i < scoreIterators.length; i++) {
       double freqOfWordInQuery = 1.0;
       try{
         String query = scoreIterators[i].getAnnotatedNode(new ScoringContext()).children.get(1).parameters;
-        if(set.contains(query)){
-          freqOfWordInQuery = 1.0;
+        // System.out.print("query:"+query);
+        if(set.contains(query)||query.equals("")){
+          // System.out.println(" continue,score is:"+scoreIterators[i].score(c));
           continue;
         }else{
+          // System.out.println(" add score");
           set.add(query);
-          freqOfWordInQuery = table.get(query) / (double)table.size();
+          freqOfWordInQuery = table.get(query) / (double)scoreIterators.length;
+          double score_top = scoreIterators[i].score(c) * freqOfWordInQuery;
+          double score_bottom= scoreIterators[i].score(c)*scoreIterators[i].score(c)*freqOfWordInQuery*freqOfWordInQuery;
+          total_top += score_top;
+          total_bottom += score_bottom;
         }
         
       }catch (IOException e){
         System.err.println("Caught IOException: " + e.getMessage());
       }
+      this.set.clear();
       
-      double score_top = scoreIterators[i].score(c) * freqOfWordInQuery;
-      double score_bottom= scoreIterators[i].score(c)*scoreIterators[i].score(c)*freqOfWordInQuery*freqOfWordInQuery;
-      total_top += score_top;
-      total_bottom += score_bottom;
     }
     return total_top / Math.sqrt(total_bottom);
   }
