@@ -3,7 +3,7 @@ CS473HW/outputTF.txt                0.024         0.056         0.080
 
 Sig-Test: randomized, threshold set to 0.050000
 run-id            map        ndcg          P3  
-CS473HW/outputTFIDF.txt             0.107         0.220         0.267    
+CS473HW/outputTFIDF.txt             0.000         0.000         0.000    
 
 Sig-Test: randomized, threshold set to 0.050000
 run-id            map        ndcg          P3  
