@@ -10,6 +10,7 @@ import org.lemurproject.galago.core.retrieval.ann.OperatorDescription;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.HashSet;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -20,6 +21,7 @@ public class CombinationCosineOperator extends DisjunctionIterator implements Sc
 
   NodeParameters np;
   protected ScoreIterator[] scoreIterators;
+  private HashSet<String> set;
 
   public CombinationCosineOperator(NodeParameters parameters,
     ScoreIterator[] childIterators) {
@@ -28,6 +30,7 @@ public class CombinationCosineOperator extends DisjunctionIterator implements Sc
     assert (childIterators.length > 0) : "#combine nodes must have more than 1 child.";
 
     this.np = parameters;
+    this.set = new HashSet<String>();
     this.scoreIterators = childIterators;
   }
 
@@ -53,7 +56,14 @@ public class CombinationCosineOperator extends DisjunctionIterator implements Sc
       double freqOfWordInQuery = 1.0;
       try{
         String query = scoreIterators[i].getAnnotatedNode(new ScoringContext()).children.get(1).parameters;
-        freqOfWordInQuery = table.get(query) / (double)table.size();
+        if(set.contains(query)){
+          freqOfWordInQuery = 1.0;
+          continue;
+        }else{
+          set.add(query);
+          freqOfWordInQuery = table.get(query) / (double)table.size();
+        }
+        
       }catch (IOException e){
         System.err.println("Caught IOException: " + e.getMessage());
       }

@@ -9,6 +9,7 @@ import org.lemurproject.galago.core.retrieval.ann.OperatorDescription;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -19,6 +20,7 @@ public class CombinationTFOperator extends DisjunctionIterator implements ScoreI
 
   NodeParameters np;
   protected ScoreIterator[] scoreIterators;
+  private HashSet<String> table;
 
   public CombinationTFOperator(NodeParameters parameters,
           ScoreIterator[] childIterators) {
@@ -27,7 +29,7 @@ public class CombinationTFOperator extends DisjunctionIterator implements ScoreI
     assert (childIterators.length > 0) : "#combine nodes must have more than 1 child.";
 
     this.np = parameters;
-
+    this.table = new HashSet<String>();
     this.scoreIterators = childIterators;
   }
 
@@ -35,9 +37,23 @@ public class CombinationTFOperator extends DisjunctionIterator implements ScoreI
   public double score(ScoringContext c) {
     double total = 0;
     for (int i = 0; i < scoreIterators.length; i++) {
-      double score = scoreIterators[i].score(c);
-      total += score;
+      try{
+        String query = scoreIterators[i].getAnnotatedNode(new ScoringContext()).children.get(1).parameters;
+
+        if(table.contains(query)||query.equals("")){
+          continue;
+        }else{
+          table.add(query);
+          double score = scoreIterators[i].score(c);
+          total += score;
+        }
+      }catch (IOException e){
+        System.err.println("Caught IOException: " + e.getMessage());
+      }
+      
     }
+    // System.out.println("table:"+table);
+    this.table.clear();
     return total;
   }
 
