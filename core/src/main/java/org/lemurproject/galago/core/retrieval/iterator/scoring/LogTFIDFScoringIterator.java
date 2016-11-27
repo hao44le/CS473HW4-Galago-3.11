@@ -24,37 +24,28 @@ import java.util.List;
  *
  * @author sjh
  */
-@RequiredStatistics(statistics = {"collectionLength", "documentCount","nodeDocumentCount"})
+@RequiredStatistics(statistics = {"documentCount","nodeDocumentCount"})
 @RequiredParameters(parameters = {"c"})
 public class LogTFIDFScoringIterator extends ScoringFunctionIterator {
 
-  private final LengthsIterator lengths;
   private final CountIterator counts;
-  private final NodeParameters np;
-  // parameter :
-  private final double c;
-  // collectionStats and constants
-  private final double averageDocumentLength;
   private final long documentCount;
   private final long df;
 
   public LogTFIDFScoringIterator(NodeParameters np, LengthsIterator lengths, CountIterator counts) throws IOException  {
     super(np,lengths,counts);
-    this.np = np;
     this.counts = counts;
-    this.lengths = lengths;
-    this.documentCount = np.getLong("documentCount");
-    this.df = np.getLong("nodeDocumentCount");
-    c = np.get("c", 1.0);
-    averageDocumentLength = (double) np.getLong("collectionLength") / (double) np.getLong("documentCount");
+    documentCount = np.getLong("documentCount");
+    df = np.getLong("nodeDocumentCount");
   }
 
 
   @Override
   public double score(ScoringContext c) {
     double tf = counts.count(c);
-    double leftSide = Math.log(tf+1);
-    return leftSide * Math.log(documentCount / (df+0.1));
+    if(df==0)return -1.0;
+    double idf = Math.log(documentCount / df);
+    return Math.log(tf+1) * idf;
   }
 
   @Override

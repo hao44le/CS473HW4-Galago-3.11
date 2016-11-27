@@ -47,7 +47,7 @@ public class CosineScoringIterator extends ScoringFunctionIterator {
 
 
   @Override
-  public double score(ScoringContext c) {
+  public double score(ScoringContext c){
     double tf = counts.count(c);
     return tf;
   }

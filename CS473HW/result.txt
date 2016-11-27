@@ -1,0 +1,24 @@
+run-id            map        ndcg          P3  
+CS473HW/outputTF.txt                0.031         0.062         0.080    
+
+Sig-Test: randomized, threshold set to 0.050000
+run-id            map        ndcg          P3  
+CS473HW/outputTFIDF.txt             0.122         0.240         0.280    
+
+Sig-Test: randomized, threshold set to 0.050000
+run-id            map        ndcg          P3  
+CS473HW/outputLogTFIDF.txt          0.220         0.356         0.480    
+
+Sig-Test: randomized, threshold set to 0.050000
+run-id            map        ndcg          P3  
+CS473HW/outputCosine.txt            0.086         0.169         0.240    
+
+Sig-Test: randomized, threshold set to 0.050000
+run-id            map        ndcg          P3  
+CS473HW/outputBM25.txt              0.237         0.379         0.453    
+
+Sig-Test: randomized, threshold set to 0.050000
+run-id            map        ndcg          P3  
+CS473HW/outputJM.txt                0.174         0.290         0.360    
+
+Sig-Test: randomized, threshold set to 0.050000
